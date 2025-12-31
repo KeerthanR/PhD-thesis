@@ -1,0 +1,154 @@
+
+\usepackage{amsmath,amssymb, amsthm, thm-restate}
+\usepackage{stmaryrd}
+\usepackage{tikz}
+\usepackage{url}
+%\usepackage{algorithm}
+%\usepackage[noend]{algpseudocode}
+\usepackage{caption}
+%\usepackage{subcaption}
+%\captionsetup{compatibility=false}
+%\usepackage[caption=false]{subfig}
+\usepackage{adjustbox}
+
+
+
+
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+
+\usepackage{hyperref}
+%\hypersetup{
+ %   colorlinks=true,
+ %   linkcolor=blue,  
+ %   filecolor=magenta,      
+ %   urlcolor=cyan
+ %     }
+
+\usepackage{color}
+\renewcommand\UrlFont{\color{blue}\rmfamily}
+\urlstyle{rm}
+
+\usepackage{lineno}
+\usepackage{tikz}
+\usepackage{thmtools}
+\usepackage{array}
+\usetikzlibrary{automata, positioning, arrows}
+
+
+
+
+% Greek
+%\newtheorem{definition}{Definition}
+%\newtheorem{example}{Example}
+%\newtheorem{lemma}{Lemma}
+%\newtheorem{corollary}{Corollary}
+
+%\newtheorem{proof}{IEEEproof}
+
+%\newtheorem{remark}{Remark}
+%\newtheorem{theorem}{Theorem}
+%\newtheorem{proposition}{Proposition}
+
+\renewcommand{\a}{\alpha}
+\renewcommand{\b}{\beta}
+\newcommand{\s}{\sigma}
+\renewcommand{\d}{\delta}
+\newcommand{\e}{\epsilon}
+\newcommand{\m}{\mu}
+
+\newcommand{\D}{\Delta}
+
+\newcommand{\rr}{0}%{\mathsf{r}}
+\newcommand{\bb}{1}%{\mathsf{b}}
+\renewcommand{\gg}{2} %{\mathsf{g}}
+\newcommand{\yy}{3} %{\mathsf{y}}
+\newcommand{\ww}{4} %{\mathsf{w}}
+% Mathcal
+\newcommand{\Aa}{\mathcal{A}}
+\newcommand{\Ll}{\mathcal{L}}
+\newcommand{\Oo}{\mathcal{O}}
+\newcommand{\Ss}{\mathcal{S}}
+\newcommand{\Ww}{\mathcal{W}}
+% Symbols
+\newcommand{\imp}{\Rightarrow}
+\newcommand{\xra}{\xrightarrow}
+\newcommand{\Land}{\bigwedge}
+\newcommand{\incl}{\subseteq}
+
+% Misc
+\newcommand{\ssczo}{C_{0 \to 1}}
+\newcommand{\coz}{C_{1 \to 0}}
+\newcommand{\sem}[1]{\llbracket #1 \rrbracket}
+%\renewcommand{\sp}{\operatorname{SP}}
+%\renewcommand{\sp}{\sigma}
+\renewcommand{\sp}{\mathcal{S}\mathcal{L}}
+\newcommand{\context}{\mathcal{C}}
+\newcommand{\border}{\mathcal{B}}
+\newcommand{\nbd}{(\mathcal{C} + \mathcal{B})}
+\newcommand{\prfx}{\sqsubseteq_{\mathsf {pr}}}
+\newcommand{\nprfx}{\not\sqsubseteq_{\mathsf {pr}}}
+\newcommand{\pprfx}{\sqsubset_{\mathsf {pr}}}
+\newcommand{\sfx}{\sqsubseteq_{\mathsf {sf}}}
+\newcommand{\psfx}{\sqsubset_{\mathsf {sf}}}
+\newcommand{\proj}[1]{\mathsf{P}_{#1}}
+\newcommand{\spm}{\sp^{\mathsf{m}}}
+\newcommand{\sfxm}{\sfx^{\mathsf{m}}}
+\newcommand{\psfxm}{\psfx^{\mathsf{m}}}
+
+\newcommand{\contextword}{W}
+\newcommand{\simplecontextword}{W^{\textsf{simple}}}
+
+\newcommand{\NP}{\mathsf{NP}}
+\newcommand{\coNP}{\mathsf{coNP}}
+\newcommand{\PTIME}{\mathsf{PTIME}}
+\newcommand{\vertex}{\textsc{VertexCover}~}
+\newcommand{\mdsa}{DSA$^{\mathsf{m}}$}
+
+\newcommand{\out}{\operatorname{Out}}
+%\newcommand{\outp}{\operatorname{Out}_{\sqsubset}}
+\newcommand{\outp}{\overline{\operatorname{Out}}}
+
+\newcommand{\lsfx}[1]{\sqsubseteq_{\scriptscriptstyle
+    \mathsf{lsf}}^{\scriptscriptstyle #1}}
+\newcommand{\sub}{\sqsubseteq_{\mathsf{sub}}}
+\newcommand{\rsub}{\sqsubset_{\mathsf{sub}^{\mathsf{r}}}}
+\renewcommand{\e}{\varepsilon}
+\renewcommand{\epsilon}{\e}
+
+\newcommand{\enum}{\textsf{Enum}}
+%\newcommand{\drop}{\textsf{Drop}}
+
+\newcommand{\spath}[3]{\ensuremath{\mathsf{SP}(#1 \rightsquigarrow #2,
+#3)}}
+\newcommand{\spaths}[2]{\ensuremath{\mathsf{SP}(#1, #2)}}
+
+
+
+% macros for mDSA
+
+
+%  \newcommand{\xra}{\xrightarrow}
+  \newcommand{\Nat}{\mathbb{N}}
+%  \newcommand{\Aa}{\mathcal{A}}
+%  \newcommand{\incl}{\subseteq}
+%  \newcommand{\out}{\operatorname{Out}}
+%  \newcommand{\proj}[1]{\mathsf{P}_{#1}}
+  \newcommand{\sigmain}{\Sigma_{\mathsf{In}}}
+  \newcommand{\sigmaio}{\Sigma_{\mathsf{IO}}}
+  \newcommand{\sigmaout}{\Sigma_{\mathsf{Out}}}
+%  \newcommand{\Ss}{\mathbb{TS}}
+  \newcommand{\Ssf}{\Ss_{\mathsf{finite}}}
+  \newcommand{\Bb}{\mathcal{B}}
+  \newcommand{\Tt}{\mathcal{T}}
+  \newcommand{\Ii}{\mathcal{I}}
+  \newcommand{\Vv}{\mathcal{V}}
+  \newcommand{\specialcell}[2][c]{%
+  \begin{tabular}[#1]{@{}c@{}}#2\end{tabular}}
+\newcommand{\var}{\operatorname{Var}}
+\newcommand{\dom}{\ensuremath{dom}}
+\newcommand{\PSPACE}{\operatorname{\textsc{Pspace}}}
