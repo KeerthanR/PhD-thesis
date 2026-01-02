@@ -1,0 +1,427 @@
+
+\chapter{Bounded test case search using SAT}
+
+\section{Mealy machines}
+\label{sec:mealy-machines}
+
+We recall the definition of a Mealy machine below.
+
+\begin{definition}[Mealy machine] Let $\Sigma$ and $\Gamma$ be finite
+  input and output alphabets respectively. A \emph{Mealy machine} is a
+  tuple $(Q, q^0, \Sigma, \Gamma, \delta)$ where $Q$ is a finite set
+  of states, $q^0$ is the initial state and
+  $\d: Q \times \Sigma \to \Gamma^* \times Q$ is a partial transition
+  function. A transition $q \xra[w]{a} q'$ maps the source state $q$
+  and input letter $a \in \Sigma$ to the output word $w \in \Gamma^*$
+  and target state $q'$.
+\end{definition}
+
+A run of a Mealy machine is a sequence of
+transitions starting from the initial state: $q_0 \xra[w_0]{a_0} q_1
+\xra[w_1]{a_1} \cdots \xra[w_k]{a_k} q_{k+1}$. Since the machine is
+deterministic, there is a unique run for every input word
+$a_0a_1 \dots a_k \in \Sigma^*$. The semantics of the Mealy machine is
+given by the set of paired words $\{ (a_0,w_0)(a_1, w_1)\cdots (a_k, w_k)\}$
+obtained from each run of the above form. We denote the semantics of
+Mealy machine $M$ by $\Ll(M)$.
+
+\section{Basic EDT}
+\label{sec:semantics}
+
+We look at a fragment of EDT that contains only a basic feature: each
+row can check for atomic conditions on the input side and output a
+single value on the output side. Table \ref{tab:basic-edt} gives a
+basic EDT, which will be used as a running example in this section. We
+will formalize what it means to say that a row (which we will call a
+rule) matches in a given sequence of inputs, and what to do if
+multiple rules match. Based on this definition, we will get a Mealy
+machine representation for basic EDTs.
+
+\begin{table}[h]
+  \centering \renewcommand{\arraystretch}{1.2}
+  \caption{ A Basic EDT $\Tt_1$ }
+  \label{tab:basic-edt}
+  \begin{tabular}{|c|c|c|c|c||c|c|c|}
+    \arrayrulecolor{gray}\hline
+    sno & $I_1$ & $I_2$ & $S_1$ & $S_2$ & $S_1$ & $S_2$ & $O_1$ \\
+    \arrayrulecolor{gray}\hline
+    1 & $a$ & & & & $1$ & & \\
+    \arrayrulecolor{gray} \hline
+    2 & $b$ & & $1$ & & $0$ & $1$ & \\
+    \arrayrulecolor{gray} \hline
+    3 & & $c$ & $0$ & $1$ & & & $o_1$ \\
+    \arrayrulecolor{gray} \hline
+    4 & & $c$ & & & & & $o_2$ \\
+    \arrayrulecolor{gray} \hline
+  \end{tabular}
+\end{table}
+
+Let $\Ii=\{I_{1}, I_2, \dots\}$ be a set of input variables,
+$\Ss=\{S_{1},S_2, \dots\}$ a set of local variables (also called
+\emph{state} variables) and $\Oo=\{O_{1},O_2, \dots\}$ a set of output
+variables. We denote by $\Vv$ the set $\Ii \cup \Ss \cup \Oo$ of all
+variables. For each variable $X \in \Ii \cup \Ss \cup \Oo$,
+let $\Sigma_X$ be a finite alphabet denoting the set of values that
+$X$ can take.  We will call the union $\Ii \cup \Ss$ as
+\emph{input-side variables} and $\Ss \cup \Oo$ as \emph{output-side
+  variables}. Each variable is assumed to have a specified
+\emph{default value}. For Table~\ref{tab:basic-edt}, let us take the
+default values $I_1 = a'$, $I_2 = c'$ (both these letters $a', c'$ do
+not appear in any rule), $S_1 = 0$, $S_2 = 0$ and $O_1 = o_1$.
+
+
+
+A \emph{condition} is a term of the form $(X = b)$ where
+$X \in \Ii \cup \Ss$ is an input-side variable and $b \in \Sigma_X$. A
+\emph{guard} is a conjunction of conditions such that there is at most
+one condition involving each input-side variable:
+$(I_1 = b) \land (S_1 = 1)$, with the symbol $\land$ denoting
+conjunction, is the guard coming from row 2. An \emph{assignment} is
+of the form $Y := b$ where $Y \in \Ss \cup \Oo$ is an output-side
+variable and $b \in \Sigma_Y$.  An \emph{update} is a set of
+assignments such that there is at most one assignment per output
+variable: $S_1:= 0 \land S_2:= 1$ is the update of row 2. For any
+guard $G$ and update $U$, we write $\var(G)$, $\var(U)$ respectively
+for the set of variables present in $G$ and $U$.
+
+\begin{definition}[Basic EDT]
+  A \emph{basic rule} (also called a \emph{row}) $R$ is a guarded
+  update of the form $G \imp U$, where $G$ is a guard on input-side
+  variables, and $U$ is an update to output-side variables. A
+  \emph{basic EDT} is an ordered set of rules $R_1, \dots, R_m$, where
+  each $R_i$ is of the form $G_i \imp U_i$. Rule $R_i$ is said to have
+  \emph{higher priority} than rule $R_j$ if $i < j$.
+\end{definition}
+
+The running example can be written as the rules:
+$R_1: (I_1 = a) \imp (S_1 := 1)$,
+$R_2: (I_1 = b) \land (S_1 = 1) \imp (S_1 := 0) \land (S_2 :=1)$ and
+so on for $R_3$ and $R_4$.
+% A basic EDT can be naturally depicted in a tabular form, as shown in
+% Example.  Figure: left hand side, a set of rules and right hand side
+% - the basic EDT corresponding to this set of rules Intuitively, an
+% EDT can be thought of as a transducer reading values for input
+% variables $\Ii$, and writing out values for output variables $\Oo$
+% determined by the rules, with the local variables acting as a link
+% between the rules.
+Intuitively, a stand-alone basic rule $G \imp U$ says that whenever
+the input-side guard $G$ becomes true, perform the output-side update
+$U$. However as an EDT comprises of a set of rules, multiple rules can
+simultaneously become true. Moreover, changes to local variables are
+assumed to be ``instantaneous'' and hence an update $U_i$ can
+immediately trigger a new guard $G_j$ whose update $U_j$ triggers a
+$G_l$ and so on. We will first define the semantics of rule match
+given a stream of inputs and local variables, for which we need some
+preliminary notions.
+
+A \emph{partial valuation} of $\Vv = \Ii \cup \Ss \cup \Oo$ is a
+partial function mapping $X \in \Vv$ to $a \in \Sigma_X$. Not all $X
+\in \Vv$ needs to have a value. We use partial valuations to model
+signals that only change the value of some of the variables. However
+at any point in time, all the variables have a defined value in our
+semantics. For a partial valuation $u$, we
+write $\dom(u)$ to denote the domain of $u$. Consider a sequence
+$\pi: u_0 u_1 \dots u_n$ of partial valuations of the entire set of
+variables $\Vv$.
+%
+We will say that $\pi$ is \emph{relevant} if it starts from the
+valuation $u_0$ that maps every variable to its default value.
+We define $v_\pi$, a total valuation over input-side variables
+$\Ii\cup \Ss$: for $X \in \Ii \cup \Ss$,  $v_\pi(X) = u_i(X)$ where
+$i \le n$ is the largest index with $X \in \dom(u_i)$ --- essentially
+this gives the \emph{last seen} value for each input-side variable at
+$\pi$. This valuation will be needed for the guard match
+semantics.
+
+\begin{definition}[Semantics of rule match] Let
+  $\pi: u_0 u_1 \dots u_n$ be a relevant sequence of partial
+  valuations of $\Vv$. A condition $X = a$
+  matches at $\pi$ if $v_\pi(X) = a$. A guard $G$ matches at $\pi$ if
+  every condition $(X = a)$ of $G$ matches at $\pi$. A guard is said
+  to \emph{freshly match} at $\pi$ if it matches at $\pi$ and
+  $X \in \dom(u_n)$ for at least one $X \in \var(G)$.
+%
+  A rule $G \imp U$ matches at $\pi$ if $G$ freshly matches at $\pi$.
+\end{definition}
+
+For example: sequence $\pi_1: u_0$ $\langle I_1 = a \rangle$ matches
+rule $1$ of Table \ref{tab:basic-edt}, but it does not match any other
+rule. The sequence
+$\pi_1' : u_0 \, \langle I_1 = a \rangle \, \langle S_1 = 1 \rangle$
+obtained after the trigger of rule $1$, does not match rule $1$ since
+this is not a fresh match. A new occurrence of $a$ is needed to
+trigger rule $1$ again. The sequence $\pi_2: u_0$
+$\langle I_1=a \rangle$ $\langle S_1 = 1 \rangle$
+$\langle I_1=b \rangle$ $\langle S_1 = 0, S_2 = 1 \rangle$
+$\langle I_2=c \rangle$ matches two rules: $3$ and $4$. The updates of
+all rules need to be performed at $\pi_2$, however there is a conflict
+in the updates: rule $3$ updates $O_1$ to $o_1$ and rule $4$ updates
+$O_1$ to $o_2$. In such a case of conflict, the rule with the higher
+priority gets triggered, here it will be rule $3$. We have
+incorporated the updates to state variables already in $\pi_2$: notice
+that the first $I_1 = a$ is followed by $S_1 = 1$ due to trigger of
+rule $1$. Notice also that there is an alternation between inputs and
+state changes.
+
+\begin{definition}[Conflict between rules, Semantics of rule trigger]
+  Two rules $R_i$ and $R_j$ are said to be in \emph{conflict}, written
+  as $R_i \# R_j$, if they perform different updates on some variable:
+  $U_i(Y) \neq U_j(Y)$ for some $Y \in \Ss \cup \Oo$.
+
+  A rule $R_i$ is
+  \emph{triggered} at sequence $\pi$ if $R_i$ matches at $\pi$ and no
+  higher priority row conflicting with $R_i$ matches at $\pi$: that
+  is, there is no $R_j$ with $j < i$ such that $R_i \# R_j$ and $R_j$
+  matches at $\pi$.  A sequence $\pi$ is said to be \emph{stable} if
+  no rule is triggered at $\pi$, otherwise it is \emph{unstable}.
+\end{definition}
+
+Sequences $\pi_1$ and $\pi_2$ are unstable since row $1$ is triggered
+at $\pi_1$ and row $3$ is triggered at $\pi_2$.  For each unstable
+sequence $\pi$ of partial valuations over $\Vv$, %$\Ii \cup \Ss$,
+a natural update valuation $U_{\pi}$ over output-side variables $\Ss \cup \Oo$ is
+defined: for each $Y \in \Ss \cup \Oo$, we have $U_{\pi}(Y) = U_i(Y)$
+for some $R_i$ that is triggered at $\pi$. Due to the conflict-free
+property, the choice of $i$ does not matter. For example
+$U_{\pi_1}= \langle S_1 = 1\rangle$ and
+$U_{\pi_2} = \langle O_1 = o_1 \rangle$. The sequence $\pi_2$ has a
+special property. After each prefix that ends with inputs, the
+immediate next set of state values is given by the update function of
+the prefix. Suppose $\pi_3 := u_0$ $\langle I_1=a \rangle$
+$\langle S_1 = 1 \rangle$ $\langle I_1=b \rangle$. The next letter in
+the sequence is $\langle S_1 = 0, S_2 = 1 \rangle$ which is
+essentially $U_{\pi_3}$. This gives a notion of valid sequences which
+describe the executions of the EDT.
+
+\begin{definition}[Semantics of basic EDT]
+  \label{def:EDT-semantics}
+The set of \emph{executions} of an EDT are defined inductively as
+follows: the initial sequence $u_0$ is an execution; for every stable
+sequence $\pi$, the one-step extension $\pi u$ is an execution for
+every partial valuation $u$ such that $\dom(u) \subseteq \Ii$; for every
+unstable sequence $\pi$, the sequence $\pi u$ where $u$ is $U_\pi$, is
+an execution. The set $\Ll(\Tt)$ of all executions of $\Tt$ gives the
+semantics of basic EDT $\Tt$. EDT $\Tt$ is said to be
+\emph{consistent} if from any unstable sequence $\pi$, there is a
+bounded sequence of updates $w$ such that $\pi w$ is a stable
+sequence. 
+\end{definition}
+
+\subsection{Mealy machines for basic EDTs}
+
+The guards on rules depend solely on the values of the input-side
+variables, and not on the actual value of the outputs. Moreover, to
+track if a guard matches at $\pi$, it is enough to know valuation
+$v_\pi$ giving the last seen values, and the set of variables that
+have a fresh value, that is the set $\dom(u_n)$. This motivates the
+next definition: a \emph{configuration} of a basic EDT is a pair
+$(v, \l)$ where $v$ is a valuation of input-side variables
+$\Ii \cup \Ss$ and $\l \incl \Ii \cup \Ss$ is a subset of input-side
+variables, maintaining where the last change occurred. The
+configuration associated to $\pi: u_0 \dots u_n$ is $(v_\pi, \l_\pi)$
+where $v_\pi$ is as defined before and $\l_\pi = \dom(u_n)$. The
+semantics of a rule match can be deciphered entirely from the
+configuration. We rewrite it for completeness: a rule $G \imp U$
+\emph{matches} at a configuration $(v, \l)$ if (1) guard $G$ is true:
+$v(X) = b$ for every $(X = b)$ in $G$, and (2) it was a fresh match:
+$\var(G) \cap \l \neq \emptyset$. The semantics of rule trigger
+remains the same. A configuration is stable if no rule is triggered in
+it, and it is unstable otherwise. As before, the update function
+$U_{(v, \l)}$ is defined as the aggregated updates of the
+(non-conflicting) rules that are triggered at $(v, \l)$. Observe that
+the number of configurations is finite. We use these configurations to
+build a Mealy machine $M_\Tt$.
+
+\begin{definition}[Mealy machine $M_\Tt$ of basic EDT $\Tt$]
+  The input alphabet $\Sigma_{\textsf{in}}$ is the set of partial valuations
+  of $\Ii$ union a special symbol $\tau$ to denote an ``internal''
+  action. The output alphabet $\Gamma_{\textsf{out}}$ is the set of partial
+  functions of $\Ss \cup \Oo$ union the special symbol $\tau$.
+
+  States of this Mealy machine are the configurations of EDT $\Tt$
+  union a special state $\{\bot\}$ which is the initial state.  Stable
+  states wait for inputs, and unstable states perform the updates
+  given by the rules that are triggered in that state. This gives rise
+  to the transition relation, which we make precise next.
+
+  From the initial state there is a transition
+  $\bot \xra[u_0^{s,o}]{u_0^{i}} (u^{i,s}_0, \Ii \cup \Ss)$, where
+  $u_0^{i}$, $u_0^{s,o}$ and $u^{i,s}_0$ are $u_0$ restricted to
+  $\Ii$, $\Ss \cup \Oo$ and $\Ii \cup \Ss$ respectively. Transitions
+  for all other states are as follows.  From stable states $(v, \l)$
+  there is a transition $(v, \l) \xra[\tau]{\a} (v', \l')$ for each
+  $\a \in \Sigma_{\textsf{in}}$, where $v'(X) = \a(X)$ for every
+  $X \in \dom(\a)$ and $v'(X) = v(X)$ otherwise, and $\l' =
+  \dom(\a)$. From unstable states $(v, \l)$ there is a unique
+  transition $(v, \l) \xra[\theta]{\tau} (v', \l')$ where
+  $v'(X) = U_{(v, \l)}(X)$ for $X \in \dom(U_{(v,\l)})$ and
+  $v'(X) = v(X)$ otherwise; $\l' = \dom(U_{(v, \l)}) \cap \Ss$ and
+  $\theta = U_{(v,\l)}$.
+  % $\theta$ is $U_{(v,\l)}$ restricted to output variables $\Oo$.
+\end{definition}
+
+Let $\chi$ be the mapping that eliminates $\tau$ from the semantics of
+$M_\Tt$: $\chi((\alpha, \tau)) = \alpha$ and
+$\chi((\tau, \theta)) = \theta$. We extend $\chi$ to finite words:
+$\chi(uv) = \chi(u)\chi(v)$, and to languages of finite words:
+$\chi(L) = \{ \chi(w) \mid w \in L\}$.
+
+\begin{theorem}\label{thm:basic-Mealy}
+  $\Ll(\Tt)$ equals $\chi(\Ll(M_\Tt))$.
+\end{theorem}
+% \begin{proof}
+%   By construction, each execution $\pi$ reaches the state
+%   $(v_\pi, \l_\pi)$. The extension of each execution is marked as a
+%   transition in the Mealy machine.
+% \end{proof}
+
+The EDT $\Tt$ will be consistent (Definition~\ref{def:EDT-semantics})
+iff $M_\Tt$ has no cycle of unstable states.
+
+
+
+
+
+
+
+
+\section{Bounded test case search using SAT}
+
+A test case for a row is a sequence of inputs that triggers the particular row.
+% What is test generation? The decision problem
+Given an EDT $\Tt$ and a row $r_i$ of $\Tt$ as input, the \emph{test
+  generation problem} is to decide if there exists an execution
+$\pi \in \Ll(\Tt)$ such that $r_i$ is triggered in $\pi$.
+
+
+\textbf{Objective:} Construct a propositional formula that holds true iff a given row in an EDT has a test case within a certain bound
+
+\subsection{Example} 
+
+\begin{center}
+
+\begin{tabular}{ |c|c|c||c|c|c| } 
+ \hline
+$ {\cal I}_1$ & in $ S_1$ &in $ S_2$ & out $ S_1 $& out $S_2$  & $O$ \\ 
+  \hline
+ $a$ & & & $ l_1 $ & $l_2$  &  \\
+ \hline
+   & $l_1 $& &  & &  \\
+ \hline
+    & 	& $l_2$ &  & & $o_2$ \\
+ \hline
+\end{tabular}
+\end{center}
+Given the above EDT, its corresponding Mealy Machine looks like \\
+
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
+                    semithick]
+  \node[initial,state] (A)                    {$q_{00}$};
+  \node[state]         (B) [right of=A] {$q_{01}$};
+  \node[state]         (C) [right of=B] {$q_{10}$};
+  \node[state]         (D) [right of=C] {$q_{11}$};
+  
+
+  \path (A) edge          node {$a/\epsilon$} (B)
+            
+        (B) edge		 node {$\epsilon/l_1\cup l_2$} (C)
+            
+        (C) edge              node {$\epsilon/o_2$} (D)
+            
+        (D) edge [bend left]		 node {$a/\epsilon$} (B)
+            ;
+\end{tikzpicture}
+
+where each of the states corresponds to the following configurations
+\begin{eqnarray} \nonumber
+q_{00} &=& \bot, \cr 
+q_{01} &=& \{(a,\bot,\bot),\{a\}\}, \cr 
+q_{10} &=& \{(a,l_1,l_2),\{l_1,l_2\}\} \cr
+\quad \text{and} \quad q_{11}&=&\{(a,l_1,l_2),\emptyset\}
+\end{eqnarray}
+
+In order to construct the propositional formula required, each state is represented by vectors $\{(v_{{\cal I}_1},v_{S_1},v_{S_2}),(\lambda_{{\cal I}_1},\lambda_{S_1},\lambda_{S_2}),(p_{r_1},p_{r_2},p_{r_3},p_{\sf{st}})\}$ with each entry a propositional variable. Each $v_X$ denotes whether the variable $X$ is currently holding its default value or not. This representation works here since each variable has only one non-default value, but can be extended to a general case using binary encoding. Each $\lambda_X$ on the other hand, denotes whether $X$ was one of the variables to have changed value or not, on the transition from the previous state to the current one. 
+
+We also have additional variables  to denote whether a state is \emph{stable} or \emph{unstable} ($p_{\sf{st}}$), and whether or not a row $r_i$ has matched ($p_{r_i}$).
+
+At the initial state, we have
+\begin{equation} \nonumber
+I(s) := (\neg v_X \wedge \neg \lambda_X) \forall X 
+\end{equation}
+
+Recalling the semantics of a row matching, we represent the transition relation. In this case,
+\begin{equation} 
+v_{{\cal I}_1} \wedge \lambda_{{\cal I}_1} \Leftrightarrow p_{r_1}
+\end{equation}
+\begin{equation} 
+p_{r_1} \imp (v'_{{\cal I}_1} \wedge v'_{S_1} \wedge v'_{S_2}) \wedge (\lambda'_{S_1} \wedge \lambda'_{S_2} \wedge \neg \lambda'_{{\cal I}_1})   
+\end{equation}
+\begin{equation} 
+v_{S_1} \wedge \lambda_{S_1} \Leftrightarrow p_{r_2} 
+\end{equation}
+\begin{equation} 
+p_{r_2}  \imp (v'_{S_1} \wedge \neg \lambda'_{S_1}) \wedge (v_{{\cal I}_1} \Leftrightarrow v'_{{\cal I}_1}) 
+\end{equation}
+\begin{equation} 
+v_{S_2} \wedge \lambda_{S_2} \Leftrightarrow p_{r_3} 
+\end{equation}
+\begin{equation} 
+p_{r_3} \imp (v'_{S_2} \wedge \neg \lambda'_{S_2}) \wedge (v_{{\cal I}_1} \Leftrightarrow v'_{{\cal I}_1}) 
+\end{equation}
+\begin{equation} 
+p_{r_1} \vee p_{r_2} \vee p_{r_3} \Leftrightarrow \neg p_{\sf{st}} 
+\end{equation}
+\begin{equation} 
+p_{\sf{st}} \imp v'_{{\cal I}_1} \wedge \lambda'_{{\cal I}_1} \wedge \neg \lambda'_{S_1} \wedge \neg \lambda'_{S_2} \wedge (v_{S_1} \Leftrightarrow v'_{S_1}) \wedge (v_{S_2} \Leftrightarrow v'_{S_2})
+\end{equation}
+
+\begin{equation} \nonumber
+T(s,s') := (1) \wedge (2) \wedge (3) \wedge (4) \wedge (5) \wedge (6) \wedge (7) \wedge (8)
+\end{equation}
+
+Let us consider a case where we are looking for a test case for the third row of the EDT, with bound $k=2$. For a path $s_0,\dots,s_k$ to be a valid path of the Mealy Machine, the following formula must be satisfied
+\begin{equation} \nonumber
+M_2 := I(s_0) \wedge T(s_0,s_1) \wedge T(s_1,s_2)
+\end{equation}
+
+The path (with bound 2) is a test case for $r_3$ iff the following formula is satisfiable
+\begin{equation} \nonumber
+{\sf{Test}_2} := M_2 \wedge p_{r_3}(s_2)
+\end{equation}
+
+In general, we can construct $\sf{Test}_k$ for any bound $k$ and given row $r_i$ of an EDT $\Tt$ (after associating a unique output corresponding to each row, with $o_i$ for $r_i$).
+
+\subsection{General case} 
+
+As in the example, each state is represented by vectors of propositional variables \\
+$\{(v_{I_1},\dots,v_{I_p},v_{S_1},\dots,v_{S_q}), (\lambda_{I_1},\dots,\lambda_{I_p},\lambda_{S_1},\dots,\lambda_{S_q}), (p_{r_1},\dots,p_{r_n},p_{\sf{st}})\}$ \\
+
+The initial state is constrained by the formula
+\begin{equation} \nonumber
+I(s) := (\neg v_X \wedge \neg \lambda_X) \forall X 
+\end{equation}
+
+Formulae for EDT semantics:
+\begin{eqnarray} \nonumber
+\bigvee_{i=1}^n p_{r_i} &\Leftrightarrow& \neg p_{\sf{st}} \cr
+p_{\sf{st}} &\imp& \bigwedge_{i=1}^q ((v_{S_i}\Leftrightarrow v'_{S_i})\wedge(\neg \lambda'_{S_i})) \wedge \bigvee_{j=1}^p \neg(v_{I_j}\Leftrightarrow v'_{I_j}) \wedge \bigwedge_{j=1}^p (\neg \lambda'_{I_j} \Leftrightarrow (v_{I_j} \Leftrightarrow v'_{I_j})) \cr
+\forall r_i = (G_i \imp U_i), \cr
+p_{r_i} &\Leftrightarrow& (\bigwedge_{X\in G_i} v_X \wedge \bigvee_{X\in G_i} \lambda_X) \wedge (\bigwedge \neg p_{r_i'}) \forall i'<i, r_i'\#r_i \cr
+p_{r_i} &\imp& \bigwedge_{X\in U_i} (v'_X \wedge \lambda'_X) \wedge \bigwedge_{X\notin U_i}((v_X\Leftrightarrow v'_X)\wedge \neg \lambda'_X)
+\end{eqnarray}
+
+The first formula marks a state as stable or not depending on whether a row has matched. The second formula handles updates if the state is stable; it constrains local variables to remain unchanged while at least one of the input values must change and be marked as newly changed.
+
+There are two formulae for each row $r_i$, the first describing the conditions for it to match and the second dealing with the update function. The first formula essentially checks if all the requirements for the row are true, with at least one of them becoming true on the last step, and that none of the higher priority rows in conflict with $r_i$ are currently matched. The second formula simply updates all variables mentioned in the row output, marking them as newly changed, while others remain the same and are marked as unchanged. 
+
+The formula for the transition relation of the Mealy Machine, $T(s,s')$ is given by the conjunction of the formulae for the semantics.
+
+We then define $M_k$ constraining $s_0,\dots,s_k$ to be a valid path in the Mealy Machine $M_{\Tt}$ corresponding to the EDT $\Tt$
+\begin{equation} \nonumber
+M_k := I(s_0) \wedge \bigwedge_{i=0}^{k-1} T(s_i,s_{i+1})
+\end{equation}
+
+The path of length $k$ corresponds to a test case for $r_i$ if the following formula is satisfiable
+\begin{equation} \nonumber
+{\sf{Test}_k} := M_k \wedge p_{r_i}(s_k)
+\end{equation}
