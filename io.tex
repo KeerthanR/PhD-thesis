@@ -1,4 +1,4 @@
-\chapter{Multiport DSAs with outputs}
+\chapter{Multiport DSA with outputs}
 \label{sec:multiport-outputs}
 
 The previous chapter extended the suffix-reading paradigm to handle concurrent \emph{inputs} via the Multi-port DSA model. However, this represents only half the behavior of a typical reactive system, which must not only process inputs but also \emph{produce outputs} in response. This chapter, based on the work presented in~\cite{Keerthan2025netys}, introduces this final, critical feature, transforming our automaton from a passive recognizer into an active computational model.
@@ -148,8 +148,7 @@ In the example EDT the input ports are prefixed with
 
 A \emph{test case} for a requirement is a sequence of values  that match the
 EDT row corresponding to that requirement. The use of EDTs and test case generation
-algorithms from EDT specifications have been widely studied.
-~\cite{DBLP:conf/enase/VenkateshSZA15a,DBLP:conf/icst/AgrawalVSZV20}. However, the notation lacks a rigorous
+algorithms from EDT specifications have been widely studied~\cite{DBLP:conf/enase/VenkateshSZA15a,DBLP:conf/icst/AgrawalVSZV20}. However, the notation lacks a rigorous
 formal semantics, except for a brief description of key elements of formal
 semantics in~\cite{DBLP:conf/date/VenkateshSKA14}. Hence, none of the test case algorithms use
 formal techniques like model checking and instead rely on random generation
@@ -291,6 +290,4 @@ This chapter presented the final evolution of the suffix-reading automaton model
 
 The impact of this feature was captured in the chapter's main theoretical result: the proof that state reachability for mDSAs-with-outputs is PSPACE-complete~\cite{Keerthan2025netys}. The N-bit counter example demonstrated vividly how the history tape can be used as a working memory of exponential size, formally capturing the computational power unlocked by this input-output mechanism.
 
-This entire development arc embodies the subtitle of this dissertation, "Putting Practice into Theory (and back)." The practical need to provide a formal foundation for the industrial `Expressive Decision Table (EDT)' notation~\cite{DBLP:conf/date/VenkateshSKA14} motivated the theoretical extension from DSA to mDSAs-with-outputs. The formal analysis of this new theoretical model, in turn, revealed a deep and fundamental complexity result. This theoretical discovery then feeds back to practice, providing a rigorous explanation for the inherent difficulty of test generation for EDT-like specifications and informing the design of future analysis tools.
-
-With the introduction and analysis of the mDSA-with-outputs, our development of the suffix-reading automata family is now complete. We have journeyed from a foundational model for sequential patterns to a powerful formalism for concurrent, reactive systems. The final chapter will now step back to summarize the overarching contributions and implications of this entire body of work, and to outline promising avenues for future research.
+The practical need to provide a formal foundation for the industrial `Expressive Decision Table (EDT)' notation~\cite{DBLP:conf/date/VenkateshSKA14} motivated the theoretical extension from DSA to mDSAs-with-outputs. With the introduction and analysis of the mDSA-with-outputs, our development of the suffix-reading automata family is now complete. We have journeyed from a foundational model for sequential patterns to a powerful formalism for concurrent, reactive systems. The final chapter will now step back to summarize the overarching contributions and implications of this entire body of work, and to outline promising avenues for future research.

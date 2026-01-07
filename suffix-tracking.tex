@@ -1,5 +1,5 @@
 
-\chapter{Suffix-tracking sets -- obtaining DSA from DFA}
+\chapter{Suffix-tracking sets -- deriving DSA from DFA}
 \label{sec:suffix-tracking-sets}
 
 The previous chapter formally defined Deterministic Suffix-reading Automata and demonstrated their potential for providing highly succinct representations of regular languages. However, a model's practical utility hinges on our ability to systematically construct it for a given language. This chapter addresses that crucial problem: how does one derive a correct and concise DSA from a standard representation like a DFA?
@@ -133,7 +133,7 @@ into two steps: (1) Start from a complete DFA, select a subset of states and
   \label{fig:suppressing-states-reduces-size}
 \end{figure}
 
-\paragraph{Building an induced DSA}
+\section{Building an induced DSA}
 
 We start with an illustrative example. Consider DFA $M$ in
 Figure~\ref{fig:induced-eqv}. 
@@ -595,7 +595,7 @@ We extend the idea of well-formed set of states to a corresponding notion on DSA
   $\beta'$ of another outgoing label $\beta \in \out(q)$.
 \end{definition}
 
-\paragraph{Removing some redundant transitions.}
+\section{Removing some redundant transitions.}
 Let us now get back to Figure~\ref{fig:dsa-to-dfa-eg} to see if we can
 derive the DSA on the left from the DFA on the right (assuming $q$ is
 the initial state). As seen earlier, the set $S = \{q, q'\}$ is

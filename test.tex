@@ -1,5 +1,7 @@
 
-\chapter{Bounded test case search using SAT}
+\chapter{Bounded test generation}
+
+This appendix illustrates a solver-based approach to test case generation, in the context of EDTs. The encoding is based on a version of the semantics prior to the introduction of mDSA-with-outputs, from an unpublished document. But the idea is readily configurable using the semantics detailed in this thesis as well; the corresponding rewriting is omitted.
 
 \section{Mealy machines}
 \label{sec:mealy-machines}
@@ -285,7 +287,7 @@ iff $M_\Tt$ has no cycle of unstable states.
 
 
 
-\section{Bounded test case search using SAT}
+\section{Test case search using SAT}
 
 A test case for a row is a sequence of inputs that triggers the particular row.
 % What is test generation? The decision problem
