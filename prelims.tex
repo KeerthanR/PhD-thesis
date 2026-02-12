@@ -3,7 +3,7 @@
 
 Before introducing the formal details of the new automaton model at the heart of this thesis, this chapter establishes the necessary theoretical foundation. We will review the standard definitions and notations from formal language theory, focusing on Deterministic Finite Automata (DFAs) as the canonical model for regular languages. Furthermore, we will define Deterministic Generalized Automata (DGAs), a key model for comparison that also utilizes strings on transitions but with a strict prefix-based matching rule. This groundwork will provide the precise vocabulary and context required to properly situate and analyze the novel suffix-reading paradigm presented in the chapters that follow.
 
-We fix a finite alphabet $\Sigma$. Following standard convention, we
+\paragraph*{Basic notations.} We fix a finite alphabet $\Sigma$. Following standard convention, we
 write $\Sigma^*$ for the set of all words (including $\e$) over
 $\Sigma$, and $\Sigma^+ = \Sigma^* \setminus \{ \e\}$. For
 $w \in \Sigma^*$, we write $|w|$ for the length of $w$, with $|\e|$
@@ -15,13 +15,17 @@ is a prefix of another word in $W$. A word $u$ is a
 \emph{suffix} (resp. \emph{proper-suffix}) of $w$ if $w = vu$ for some
 $v \in \Sigma^*$ (resp. $v \in \Sigma^+$).
 
+\begin{definition}[Deterministic Finite Automata (DFA)] \label{def:dfa}
 A \emph{Deterministic Finite Automaton (DFA)} $M$ is a tuple
 $(Q, \Sigma, q^{init}, \delta, F)$ where $Q$ is a finite set of
 states, $q^{init} \in Q$ is the initial state, $F \incl Q$ is a set of
 accepting states, and $\delta: Q \times \Sigma \to Q$ is a partial
 function describing the transitions. If $\delta$ is complete, the
 automaton is said to be a complete DFA. Else, it is called a trim
-DFA. The run of DFA $M$ on a word $w = a_1 a_2 \dots a_n$ (where
+DFA. 
+\end{definition}
+
+The run of DFA $M$ on a word $w = a_1 a_2 \dots a_n$ (where
 $a_i \in \Sigma$) is a sequence of transitions
 $(q_0, a_1, q_1) (q_1, a_2, q_2) \dots (q_{n-1}, a_n, q_n)$ where $\delta(q_i, a_{i+1}) = q_{i+1}$ for each $0 \le i < n$, and
 $q_0 = q^{init}$, the initial state of $M$. The run is accepting if
@@ -30,6 +34,7 @@ trim DFA, each word either a has unique run, or it has no run. The
 language $\Ll(M)$ of DFA $M$, is the set of words for which $M$ has an
 accepting run.
 
+\paragraph*{Nerode equivalence and minimality of DFAs.} 
 We will now recall some useful facts about minimality of DFAs. Here,
 by minimality, we mean DFAs with the least number of states. Every
 complete DFA $M$ induces an equivalence $\sim_M$ over words:
@@ -47,12 +52,14 @@ implies $u \sim_{M_L} v$. If two words reach the same state in $M$,
 they reach the same state in $M_L$.
 
 
+\begin{definition}[Deterministic Generalized Automata (DGA)] \label{def:dga}
   A \emph{Deterministic Generalized Automaton (DGA)}~\cite{giammarresi1999deterministic} $H$ is given by
   $(Q, \Sigma, q^{init}, E, F)$ where $Q, q^{init}, F$ mean the same
   as in DFA, and $E \incl Q \times \Sigma^+ \times Q$ is a finite set
   of edges labeled with words from $\Sigma^+$. For every state $q$,
   the set $\{ \alpha \mid (q, \alpha, q') \in E \}$ is a prefix-free
   set.
+\end{definition}
 A run of DGA $H$ on a word $w$ is a sequence of edges
 $(q_0, \alpha_1, q_1) (q_1, \alpha_2, q_2) \dots (q_{n-1}, \a_n, q_n)$
 such that $w = \alpha_1 \alpha_2 \dots \a_n$, with $q_0$ being the
@@ -138,7 +145,7 @@ gives examples of DFAs and corresponding DGAs.
 It was
 shown in~ \cite{giammarresi1999deterministic} that there is no unique smallest DGA. The paper defines an operation
 to suppress states and create longer labels. A state of a DGA is
-called \emph{superflous} if it is neither the initial nor final state,
+called \emph{superfluous} if it is neither the initial nor final state,
 and it has no self-loop. For example, in
 Figure~\ref{fig:dfa-dga-examples}, in $M_1$ and $M_2$, state $q_1$ is
 superfluous. Such states can be removed, and every pair
@@ -157,7 +164,7 @@ canonical DFA.
 
 
 
-
+\textcolor{red}{Why is the next section here?}
 
 
 \section{Automata models in Practical applications}
