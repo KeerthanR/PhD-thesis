@@ -13,7 +13,27 @@ $v \in \Sigma^+$. Observe that $\e$ is a prefix of every word. A set
 of words $W$ is said to be a \emph{prefix-free set} if no word in $W$
 is a prefix of another word in $W$. A word $u$ is a
 \emph{suffix} (resp. \emph{proper-suffix}) of $w$ if $w = vu$ for some
-$v \in \Sigma^*$ (resp. $v \in \Sigma^+$).
+$v \in \Sigma^*$ (resp. $v \in \Sigma^+$). We state below some notations which will come in handy for the formal definition and analysis of our suffix-reading automaton model.
+
+\begin{definition}[Notations for suffix]
+  \label{def:notation}
+  For two words $w_1, w_2$, we write $w_1 \sfx w_2$ if $w_1$
+   is a suffix of $w_2$. For a set of words $U \incl \Sigma^*$ and $\a, \beta \in \Sigma^*$,
+ $\a \lsfx{U} \beta$ if $\a$ is the longest word in $U$ which is a
+ suffix of $\beta$, i.e. for all $\a' \in U$ if $\a' \sfx \beta$ then
+ $|\a'| \leq |\a|$.
+% \begin{itemize}
+%  \item For two words $w_1, w_2$, we write $w_1 \sfx w_2$ if $w_1$
+%    is a suffix of $w_2$.
+%  \item For a set of words $U \incl \Sigma^*$ and $\a, \beta \in \Sigma^*$,
+%  $\a \lsfx{U} \beta$ if $\a$ is the longest word in $U$ which is a
+%  suffix of $\beta$, i.e. for all $\a' \in U$ if $\a' \sfx \beta$ then
+%  $|\a'| \leq |\a|$.
+
+
+% \end{itemize}
+\end{definition}
+
 
 \begin{definition}[Deterministic Finite Automata (DFA)] \label{def:dfa}
 A \emph{Deterministic Finite Automaton (DFA)} $M$ is a tuple

@@ -4,16 +4,23 @@
 
 The preceding chapters established that while Deterministic Finite Automata (DFAs) are the canonical model for regular languages, their practical application is often limited by the state-space explosion problem. This has motivated a long-standing search in automata theory for more succinct, yet still deterministic, models of computation.
 
-One prominent approach to achieving conciseness is to allow transitions to be labeled with strings or more complex patterns instead of single symbols. This is seen in models like Deterministic Generalized Automata (DGAs)~\cite{giammarresi1999deterministic} and Deterministic Expression Automata (DEAs)~\cite{DBLP:conf/wia/HanW04}. In a DGA, a transition $q \xrightarrow{\alpha} q'$ is taken from state $q$ only if the remaining input word has the string $\alpha$ as a prefix. The word $\alpha$ is then consumed, and computation continues from state $q'$. This prefix-matching semantic is effective for collapsing linear chains of DFA states into a single transition. However, it is inherently rigid; a DGA cannot ignore or "skip" over intermediate segments of the input stream. This makes it ill-suited for specifying behaviors where an action should be triggered by a specific pattern appearing anywhere in the input, irrespective of what precedes it. DEAs, which use regular expressions, offer more power but come with significant restrictions on the expressions to maintain determinism, ultimately limiting their general applicability.
+One prominent approach to achieving conciseness is to allow transitions to be labeled with strings or more complex patterns instead of single symbols, as seen in models like Deterministic Generalized Automata (DGA). %This is seen in models like Deterministic Generalized Automata (DGAs)~\cite{giammarresi1999deterministic} and Deterministic Expression Automata (DEAs)~\cite{DBLP:conf/wia/HanW04}. 
+As we saw in the previous chapter, in a DGA, a transition $q \xrightarrow{\alpha} q'$ is taken from state $q$ only if the remaining input word has the string $\alpha$ as a prefix. The word $\alpha$ is then consumed, and computation continues from state $q'$. This prefix-matching semantic is effective for collapsing linear chains of DFA states into a single transition. However, it is inherently rigid; a DGA cannot ignore or "skip" over intermediate segments of the input stream. This makes it ill-suited for specifying behaviors where an action should be triggered by a specific pattern appearing anywhere in the input, irrespective of what precedes it. DEAs, which use regular expressions, offer more power but come with significant restrictions on the expressions to maintain determinism, ultimately limiting their general applicability.
 
 This chapter introduces a fundamentally different paradigm for string-based automata: `suffix-reading'. Instead of actively consuming prefixes from the remaining input, our model operates on a "wait-and-jump" principle based on the suffixes of the word read so far. The core conceptual shift is from asking, "Does the start of the remaining input match my transition label?" (the DGA approach) to asking, "Does the input processed thus far end with one of my trigger patterns?".
 
 In a Deterministic Suffix-reading Automaton (DSA), a state does not just represent the endpoint of processing a given set of strings, but rather enables a mode of "waiting" for a specific set of patterns to appear. This allows the automaton to passively consume long sequences of irrelevant inputs, only becoming active when a meaningful, pre-defined pattern is detected as a suffix of the history. This approach is designed to more naturally capture the logic of specifications that are "pattern-intensive."
 
-In the sections that follow, we will formalize this intuition. We will provide the complete syntax for DSAs, followed by a rigorous definition of their operational semantics, which resolves ambiguity through novel rules for earliest and longest matching patterns. We will then establish the model's theoretical properties, proving that it retains the full expressive power of DFAs for regular languages and analyzing its potential for providing significantly more succinct specifications.
+\paragraph*{Structure of this chapter.} In the sections that follow, we will formalize this intuition. 
+\begin{itemize}
+\item In Section~\ref{sec:dsa-formal-syntax-semantics} we will provide the complete syntax for DSAs, followed by a rigorous definition of their operational semantics, which resolves ambiguity through rules for earliest and longest matching patterns. 
+\item In Section~\ref{sec:comparison-with-dfa} we will then establish the model's theoretical properties, proving that it retains the full expressive power of DFAs for regular languages and analyzing its potential for providing significantly more succinct specifications.
+\end{itemize}
 
 %marker
 
+\section{DSA: formal syntax and semantics}
+\label{sec:dsa-formal-syntax-semantics}
 
 We have seen an example of a deterministic suffix automaton in
 Figure~\ref{fig:if-else}. A DSA consists of a set of states, and a
@@ -281,24 +288,24 @@ suffix. For all such words, the tracking DFA maintains the longest
 word among $\outp(q)$ seen as a suffix so far. For instance, in
 Figure~\ref{fig:dsa-to-dfa-eg}, at $q$ on reading word $aab$, the DFA
 on the right is in state $ab$ (which is the equivalent of $(q, ab)$ in
-the tracking DFA definition).
+the tracking DFA definition). To distinguish between reaching $q$ after seeing a full pattern (in which case we may need to accept the word) and ``resetting'' the word seen so far since there was no matching suffix, we consider the copy $(q, \overline{\epsilon})$. For example, in Figure~\ref{fig:dsa-to-dfa-eg}, if we assume there is an additional letter $c$ appears in transition out of $q$, on reading the word $aabc$, the tracking DFA goes to state $(q, \overline{\epsilon})$.
 
-In the rest of the document, we will make use of the following notation:
+%In the following, we will make use of notation from Definition~\ref{def:notation}. %rest of the document, we will make use of the following notation:
 
-\begin{definition}[Notation]
-  \label{def:notation}
+% \begin{definition}[Notation]
+%   \label{def:notation}
   
-\begin{itemize}
-  For two words $w_1, w_2$, we write $w_1 \sfx w_2$ if $w_1$
-   is a suffix of $w_2$.
- \item For a set of words $U \incl \Sigma^*$ and $\a, \beta \in \Sigma^*$,
- $\a \lsfx{U} \beta$ if $\a$ is the longest word in $U$ which is a
- suffix of $\beta$, i.e. for all $\a' \in U$ if $\a' \sfx \beta$ then
- $|\a'| \leq |\a|$.
+% \begin{itemize}
+%   For two words $w_1, w_2$, we write $w_1 \sfx w_2$ if $w_1$
+%    is a suffix of $w_2$.
+%  \item For a set of words $U \incl \Sigma^*$ and $\a, \beta \in \Sigma^*$,
+%  $\a \lsfx{U} \beta$ if $\a$ is the longest word in $U$ which is a
+%  suffix of $\beta$, i.e. for all $\a' \in U$ if $\a' \sfx \beta$ then
+%  $|\a'| \leq |\a|$.
 
 
-\end{itemize}
-\end{definition}
+% \end{itemize}
+% \end{definition}
 
 \begin{restatable}{lemma}{trackingDFAEquivalent}
   \label{lem:tracking-dfa-language-equivalent}
@@ -314,13 +321,13 @@ In the rest of the document, we will make use of the following notation:
   \item Let $w$ be a word that has no $\a \in \out(q)$ as its
     factor. Then, the run of $w$ starting at $(q, \e)$, remains in
     states of the form $(q, \beta)$ and ends in state $(q, \beta_w)$
-    where $\beta_w \lsfx{\outp(q)} w$.
+    where $\beta_w \lsfx{\outp(q)} w$, when $\beta_w \neq \epsilon$; if $\beta_w = \epsilon$, then it ends in state $(q, \overline{\epsilon})$. 
   \item Let $w$ be a word such that $q \xra[\a]{w} q'$ is a move of
     $\Aa$. Then the run of $M_\Aa$ on $w$ starting at $(q, \e)$
     remains in states of the form $(q, \beta)$ and ends in $(q', \e)$.
   \item Let $w$ be a word such that the run of $M_\Aa$ starting at
     $(q, \e)$ remains in states of the form $(q, \beta)$ and ends in a
-    state $(q, \beta_w)$. Then $\beta_w \lsfx{\outp(q)} w$.
+    state $(q, \beta_w)$. If $\beta_w \neq \overline{\epsilon}$, then $\beta_w \lsfx{\outp(q)} w$. If $\beta_w = \epsilon$, then there is no suffix of $w$ in $\outp(q)$. 
   \item Let $w$ be a word such that the run of $M_\Aa$ starting at
     $(q, \e)$ ends in $(q', \e)$, and all intermediate states are of
     the form $(q, \beta)$. Then there is a move $q \xra[\a]{w} q'$ in
@@ -346,7 +353,7 @@ starting with a family of languages for which DSAs are concise.
 
 \begin{restatable}{lemma}{dsaSmall}
   \label{lem:dsa-small}
-  Let $\Sigma = \{a_1, a_2, \dots, a_n\}$ for some $n \ge 1$. Consider
+  Let $\Sigma = \{a_1, a_2, \dots, a_n\}$ be an alphabet for some $n \ge 1$. Consider
   the language $L_n = \Sigma^* a_1 a_2 \dots a_n$. There is a DSA for
   this language with size $(4 + 2 |\Sigma|)$.  Any trim DFA for $L_n$ has size at
   least ${|\Sigma|}^2$. (Note: size is counted as the sum of the number of
@@ -452,8 +459,10 @@ For a regular language $L$, let
 %%% TeX-master: "dsa-main"
 %%% End:
 
+\paragraph*{Concluding remarks for Chapter~\ref{sec:new-automaton-model}.}
 This chapter has laid the complete theoretical groundwork for Deterministic Suffix-reading Automata. We began with a formal syntax in \textbf{Definition \ref{def:suff-reading-aut}}, introducing not only the structure of the automaton but also the \textbf{total-size} metric, a more faithful measure of descriptive complexity for models with string-based transition labels. The core idea of the model was detailed through its unique operational semantics, where we established how a DSA defines a deterministic run by adhering to two principles: acting on the \textbf{earliest} occurrence of a recognizable pattern, and in cases of ambiguity, choosing the transition corresponding to the \textbf{longest matching suffix}.
 
-A central result of this chapter was the proof that DSAs recognize exactly the class of \textbf{regular languages}. This was established constructively through the \textbf{tracking DFA} construction (Definition 3.4), a method for converting any DSA into an equivalent, standard DFA. This result firmly grounds our new model within classical automata theory, ensuring it is a new representation for a well-understood class of languages, rather than an extension into non-regular territory. Finally, we quantified the primary motivation for this new model: \textbf{succinctness}. By analyzing a family of languages ($L_n = \Sigma^* a_1 a_2 \dots a_n$), we formally demonstrated that a DSA can be exponentially more concise in total size than the minimal DFA for the same language, highlighting its potential for modeling pattern-intensive specifications.
+One main observation of this chapter was the proof that DSAs recognize exactly the class of regular languages. This was established constructively through the \textbf{tracking DFA} construction (Definition 3.4), a method for converting any DSA into an equivalent, standard DFA. This result %firmly grounds our new model within classical automata theory, 
+ensures that our model is a new representation for a well-understood class of languages, rather than an extension into non-regular territory. Finally, we quantified the primary motivation for this new model: \textbf{succinctness}. By analyzing a family of languages ($L_n = \Sigma^* a_1 a_2 \dots a_n$), we formally demonstrated that a DSA can be exponentially more concise in total size than the minimal DFA for the same language, highlighting its potential for modeling pattern-intensive specifications.
 
 With the model's theoretical properties and potential benefits now established, the focus naturally shifts from the abstract to the constructive. A formal model is only as useful as our ability to create instances of it for practical problems. This leads to the central question that will drive the next chapter: Given a regular language, typically represented by a DFA, how can we derive a language-equivalent and concise DSA? We will answer this by presenting a systematic DFA-to-DSA conversion procedure. This investigation will, in turn, unveil some counter-intuitive challenges of DSA minimization, revealing fundamental ways in which suffix-reading automata differ from their classical counterparts.
