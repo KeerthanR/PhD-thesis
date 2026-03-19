@@ -2,15 +2,19 @@
 \chapter{Suffix-tracking sets -- deriving DSA from DFA}
 \label{sec:suffix-tracking-sets}
 
-The previous chapter formally defined Deterministic Suffix-reading Automata and demonstrated their potential for providing highly succinct representations of regular languages. However, a model's practical utility hinges on our ability to systematically construct it for a given language. This chapter addresses that crucial problem: how does one derive a correct and concise DSA from a standard representation like a DFA?
+The previous chapter formally defined Deterministic Suffix-reading Automata and demonstrated their potential for providing succinct representations of regular languages. However, a model's practical utility hinges on our ability to systematically construct it for a given language. This chapter addresses this question: 
 
-Our approach is centered on a form of abstraction, or state suppression. The core intuition is to "downsample" a given DFA by selecting a subset of its states to serve as the primary "macro-states" of the new DSA, while the paths between them become the new, string-based transitions. This general strategy is not new; a similar state-suppression method exists for generating Deterministic Generalized Automata~\cite{giammarresi1999deterministic}. However, the challenge is significantly greater for DSAs. The sophisticated, non-local semantics of suffix-reading mean that the suppressed states and the paths through them must collectively behave as a single, consistent suffix-matcher. Naively collapsing paths without respecting this underlying semantic requirement can easily alter the accepted language.
+\begin{description}
+\item[Problem of interest.] how does one derive a correct and concise DSA from a standard representation like a DFA?
+\end{description}
 
-For the derivation to be sound, the collection of paths that will become the new DSA transitions must satisfy stringent consistency requirements. An analogy can be drawn to ensuring a complex electronic circuit is functional: it is not enough for the individual wires to be well-made; they must also be connected correctly at their terminals to avoid ambiguity and short-circuits. Our derivation procedure rests on two such conditions.
+Our approach is centered on a form of abstraction, or state suppression. The core intuition is to "downsample" a given DFA by selecting a subset of its states to serve as the primary "macro-states" of the new DSA, while the paths between them become the new, string-based transitions. This general strategy is not new; a similar state-suppression method exists for generating Deterministic Generalized Automata~\cite{giammarresi1999deterministic}. However, the challenge is significantly greater for DSAs. The sophisticated, non-local semantics of suffix-reading mean that the suppressed states and the paths through them must collectively behave as a single, consistent suffix-matcher. Naively collapsing paths without respecting this underlying semantic requirement can alter the accepted language.
 
-First, we must ensure that the paths are \textbf{internally consistent}. This is the role of the `suffix-compatibility' condition. It guarantees that as we trace a path through the suppressed part of the DFA, the logic of suffix-matching is maintained correctly at every single step. This is akin to checking that each wire in the circuit functions correctly along its entire length, faithfully transmitting signals.
+For the derivation to be sound, the collection of paths that will become the new DSA transitions must satisfy certain consistency requirements. An analogy can be drawn to ensuring a complex electronic circuit is functional: it is not enough for the individual wires to be well-made; they must also be connected correctly at their terminals to avoid ambiguity and short-circuits. Our derivation procedure rests on two such conditions.
 
-Second, we must ensure the paths are consistent with each other at their \textbf{endpoints}—the selected macro-states. This is the purpose of the `well-formedness' condition. It prevents ambiguity by forbidding situations where a path leading to a chosen macro-state could be mistaken for part of a different path leading to a suppressed state. This is analogous to checking that all wires are connected to the correct terminals in the circuit, ensuring that signals arrive at their intended destinations without interference.
+First, we must ensure that the paths are \textbf{internally consistent}. This is the role of what we call a `suffix-compatibility' condition. It guarantees that as we trace a path through the suppressed part of the DFA, the logic of suffix-matching is maintained correctly at every single step. This is akin to checking that each wire in the circuit functions correctly along its entire length, faithfully transmitting signals.
+
+Second, we must ensure the paths are consistent with each other at their \textbf{endpoints}—the selected macro-states. This is the purpose of what we call a `well-formedness' condition. It prevents ambiguity by forbidding situations where a path leading to a chosen macro-state could be mistaken for part of a different path leading to a suppressed state. This is analogous to checking that all wires are connected to the correct terminals in the circuit, ensuring that signals arrive at their intended destinations without interference.
 
 This chapter will formalize these ideas, culminating in the definition of a `suffix-tracking set': a set of states that satisfies both of these conditions. The main theorem will then prove that any DSA derived from such a set is guaranteed to be sound and language-equivalent to the source DFA.
 
@@ -45,11 +49,15 @@ section. We deviate from the DGA setting in two ways:  we will select a subset o
 construct a DSA (essentially, this means the rest of the states are
 suppressed); secondly, our starting point will be complete DFA, on
 which we make the choice of states (in DGAs, one could start
-with any DGA and suppress states). Our procedure can be broken down
-into two steps: (1) Start from a complete DFA, select a subset of states and
-    build an induced DSA by connecting states using
-    acyclic paths between them; (2) Remove some redundant
-    transitions.
+with any DGA and suppress states). 
+
+\paragraph*{Structure of this chapter.} Our procedure can be broken down
+into two steps, which we will describe in the two sections of this chapter.
+\begin{itemize}
+\item In Section~\ref{sec:induced-dsa}, we start from a complete DFA, select a subset of states and build an induced DSA by connecting states using acyclic paths between them.
+\item In Section~\ref{sec:removing-redundant}, we show how to remove some redundant transitions. In the end we obtain a potentially more concise DSA from the initial DFA.
+\end{itemize}  
+
 
 
 \begin{figure}
@@ -134,6 +142,7 @@ into two steps: (1) Start from a complete DFA, select a subset of states and
 \end{figure}
 
 \section{Building an induced DSA}
+\label{sec:induced-dsa}
 
 We start with an illustrative example. Consider DFA $M$ in
 Figure~\ref{fig:induced-eqv}. 
@@ -344,7 +353,7 @@ chosen set $S$.
 The suffix-compatibility condition is described using simple paths to
 states. It requires that every transition take each simple word
 reaching its source to the state tracking the longest suffix of its
-one-letter extension. This condition on simple paths, transfers to all
+one-letter extension. This condition on simple words, transfers to all
 words, that circle around the suppressed states. In
 Figure~\ref{fig:dsa-to-dfa-eg}, this property can be verified by
 considering the word $bbabab$ and its run: $q \xra{b} b \xra{b} b \xra{a} ba \xra{b} ab \xra{a} aba \xra{b} ab$.
@@ -596,6 +605,7 @@ We extend the idea of well-formed set of states to a corresponding notion on DSA
 \end{definition}
 
 \section{Removing some redundant transitions.}
+\label{sec:removing-redundant}
 Let us now get back to Figure~\ref{fig:dsa-to-dfa-eg} to see if we can
 derive the DSA on the left from the DFA on the right (assuming $q$ is
 the initial state). As seen earlier, the set $S = \{q, q'\}$ is
@@ -818,8 +828,8 @@ result.
 %%% End:
 
 
-This chapter has provided a concrete answer to the constructive question that concluded the previous one: how to build a DSA for a given regular language. We have developed a complete and sound derivation procedure that transforms a given complete DFA into a language-equivalent DSA, providing the crucial bridge from the theoretical model to its practical application.
+\paragraph*{Concluding remarks for Chapter~\ref{sec:suffix-tracking-sets}.} This chapter has provided a concrete answer to the constructive question that concluded the previous one: how to build a DSA for a given regular language. We have developed a complete and sound derivation procedure that transforms a given complete DFA into a language-equivalent DSA.% providing the crucial bridge from the theoretical model to its practical application.
 
 The core of this method is the concept of the \textit{suffix-tracking set}. By identifying the key technical conditions of \textit{suffix-compatibility}, which ensures the internal consistency of the suppressed automaton paths, and \textit{well-formedness}, which ensures non-ambiguous connections at the path endpoints, we established a rigorous framework for abstracting away DFA states while correctly preserving the original language's semantics within the suffix-reading paradigm. The procedure is fully constructive, providing a clear algorithm for generating correct DSAs, complete with post-processing steps to prune redundant transitions for improved conciseness.
 
-Having established a method for constructing correct DSAs, the focus naturally shifts to optimization. Our procedure allows for many possible suffix-tracking sets within a single DFA, each yielding a different DSA of potentially different size. This raises the fundamental question of \textbf{minimization}: how can we find a DSA with the smallest possible total size for a given language? One might intuitively expect that applying our derivation procedure to the canonical (minimal-state) DFA would be the optimal strategy, mirroring the approach for models like DGAs~\cite{giammarresi1999deterministic}. The next chapter will investigate this question and reveal a surprising departure from this classical principle. We will explore the counter-intuitive landscape of DSA minimization, demonstrating that the path to an optimal DSA is fraught with complexities and that the canonical DFA is not always the best starting point.
+Having established a method for constructing correct DSAs, the focus naturally shifts to optimization. Our procedure allows for many possible suffix-tracking sets within a single DFA, each yielding a different DSA of potentially different size. This raises the fundamental question of \textbf{minimization}: how can we find a DSA with the smallest possible total size for a given language? One might intuitively expect that applying our derivation procedure to the canonical (minimal-state) DFA would be the optimal strategy, mirroring the approach for models like DGAs~\cite{giammarresi1999deterministic}. The next chapter will investigate this question and reveal a surprising departure from this classical principle. We will see that the canonical DFA is not necessarily the best starting point.% explore the counter-intuitive landscape of DSA minimization, demonstrating that the path to an optimal DSA is fraught with complexities and that the canonical DFA is not always the best starting point.
