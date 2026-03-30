@@ -2,17 +2,23 @@
 \chapter{Minimality -- some observations and challenges}
 \label{sec:minim-some-observ}
 
-The previous chapter provided a constructive answer to the question of how to build a Deterministic Suffix-reading Automaton from a DFA. The derivation procedure, based on suffix-tracking sets, can generate a language-equivalent DSA. However, the choice of a suffix-tracking set is not unique, meaning our procedure can produce many different DSAs for the same language, each with a different total size. This naturally gives rise to the fundamental optimization problem: how do we find a DSA that is minimal, that is, one with the smallest possible total size?
+The previous chapter provided a constructive answer to the question of how to build a Deterministic Suffix-reading Automaton from a DFA. The derivation procedure, based on suffix-tracking sets, can generate a language-equivalent DSA. However, the choice of  suffix-tracking set is not unique, meaning our procedure can produce many different DSAs for the same language, each with a different total size. This naturally gives rise to the optimization problem: how do we find a DSA that is minimal, that is, one with the smallest possible total size?
 
-In classical automata theory, the path to a minimal DFA is well-trodden, anchored by the Myhill-Nerode theorem and the existence of a unique canonical DFA for every regular language. One might reasonably expect a similar principle to apply here: that a minimal DSA could be found by applying our derivation procedure to this canonical DFA. This chapter will demonstrate that DSA minimization is far more complex and challenges these classical intuitions.
+In classical automata theory, the path to a minimal DFA is anchored by the Myhill-Nerode theorem and the existence of a unique canonical DFA for every regular language. One might reasonably expect a similar principle to apply here: that a minimal DSA could be found by applying our derivation procedure to this canonical DFA. This chapter will demonstrate that this is not the case. DSA minimization is far more complex.
 
-We begin by establishing that unlike DFAs, minimal DSAs are not necessarily unique. We then present the central, surprising observation of this chapter: we will show via a concrete counterexample that the smallest DSA derivable from the canonical DFA of a language is not always a minimal DSA for that language. In some cases, a smaller DSA can only be derived from a larger, non-minimal DFA. This finding has profound implications, suggesting that the standard Nerode equivalence does not capture the right notion of state equivalence for DSA minimization.
+We begin by establishing that unlike DFAs, minimal DSAs are not necessarily unique. We then present the central, surprising observation of this chapter: we will show via a concrete counterexample that the smallest DSA derivable from the canonical DFA of a language is not always a minimal DSA for that language. In some cases, a smaller DSA can only be derived from a larger, non-minimal DFA. This finding suggests that the standard Nerode equivalence does not capture the right notion of state equivalence for DSA minimization.
 
-This investigation will proceed in three parts. First, we will explore these counter-intuitive properties. Second, we will formalize the inherent difficulty of this problem by proving that DSA minimization is NP-complete. Finally, in response to this complexity, we will introduce and analyze a well-behaved and practical subclass, `Strongly Deterministic Suffix-reading Automata (sDSAs)', for which the desirable link to the canonical DFA is restored.
-
+\subparagraph*{Structure of this chapter.} This investigation will proceed in three parts. 
+\begin{itemize}
+  \item In Section~\ref{sec:min-dsa-props}, we will explore some of the properties of minimal DSAs and the surprising observation that minimal DSAs need not be derived from the canonical DFA.
+  \item In Section~\ref{sec:complexity}, we will formalize the inherent difficulty of this problem by proving that DSA minimization is NP-complete. 
+  \item Finally, in response to this complexity, in Section~\ref{sec:strong} we will introduce and analyze a well-behaved subclass, `Strongly Deterministic Suffix-reading Automata (sDSAs)', for which the desirable link to the canonical DFA is restored.
+\end{itemize}
 %marker
 \vspace{.25cm}
 
+\section{Some properties of minimal DSAs}
+\label{sec:min-dsa-props}
 Theorem~\ref{thm:comparing-dsa-with-dfa-dga} shows that we cannot
 expect DSAs to be smaller than (trim) DFAs or DGAs in
 general. However, Lemma~\ref{lem:dsa-small} and
@@ -27,7 +33,7 @@ size. The first observation is that minimal DSAs need not be unique
    The minimal DSA need not be unique.
  \end{lemma}
 \begin{proof}
-  Figure~\ref{fig:no-canonical} illustrates two DSAs, both of size $7$ ($2$ states,
+  Figure~\ref{fig:no-canonical} illustrates two DSAs, both of size $8$ ($3$ states,
   $2$ edges, total label length $3$), accepting
   the same language. From DSA $\Aa_1$, we can see that the
   language accepted is $b^*a^*abb^*a$. From DSA $\Aa_2$, we can derive
@@ -48,19 +54,20 @@ size. The first observation is that minimal DSAs need not be unique
   size at least $1$. Hence, $\Aa$ has at least two states, and at
   least two transitions: $t$ which contributes to size $4$ (includes
   $1$ edge and label of length $3$) and a transition $t'$ of size at
-  least $2$. Therefore $|\Aa| \ge 2 + 4 + 2 = 8$, which is strictly
-  greater than $|\Aa_1|$ and $|\Aa_2|$. This is a
-  contradiction. Therefore the accepting run of $\Aa$ on $aba$ has a
+  least $2$. Therefore $|\Aa| \ge 2 + 4 + 2 = 8$, which is at least the
+  size  of $|\Aa_1|$ and $|\Aa_2|$, and hence any DSA that accepts $aba$ through a single transition has total-size at least $8$.
+  Now, suppose the accepting run of $\Aa$ on $aba$ has a
   first transition on a prefix of $aba$, either $a$ or $ab$,
   corresponding to an intermediate transition $q_0 \xra{a} q'$ or $q_0
   \xra{ab} q'$. In the former case, there can be a transition $q'
   \xra{ba} q_1$ to accept $aba$ (if the transition is on just $b$, it only makes the automaton larger since $a$ remains to be read), and in the latter case, a transition
-  $q' \xra{a} q_1$. This gives the two automata $\Aa_2$ and $\Aa_1$,
-  which are therefore indeed minimal.
+  $q' \xra{a} q_1$. 
+  This discussion shows that the two automata $\Aa_2$ and $\Aa_1$,
+  are indeed minimal.
 \end{proof}
 
 The next  observation
-is that a minimal DSAs will be well-formed: if there are two transitions
+is that minimal DSAs will be well-formed (Definition~\ref{def:well-formed-dsa}): if there are two transitions
 $q \xra{\a} q_1$ and $q \xra{\beta_1 \a \beta_2} q_2$, then we can remove
 the second transition since it will never get fired.
 
@@ -100,7 +107,7 @@ this property, the DSAs that are derived using our DFA-to-DSA
 procedure (Definition~\ref{def:derived-dsa}) are well-formed. The next
 proposition shows that every DSA that is well-formed and has no
 redundant transitions (and in particular, the minimal
-DSAs) can be derived from the corresponding tracking DFAs.
+DSAs) can be derived from the corresponding tracking DFAs (see Definition~\ref{def:derived-dsa} for what it means to be ``derived'').
 
 
 \begin{restatable}{proposition}{dsaDerivableFromTracking}
@@ -567,7 +574,7 @@ regular language may not derive a minimal DSA for the language (Figures~\ref{fig
 \item[Section~\ref{sec:sDSA-minimality}]  In the second part, we prove that every minimal strong DSA can be derived from the canonical DFA using the derivation procedure of Section~\ref{sec:suffix-tracking-sets}.
 \end{description}
 
-This section is inspired by a question that was left open in the earlier version of this work~\cite{DBLP:journals/corr/abs-2410-22761}: when does the smallest DSA derived from the canonical DFA correspond to a minimal DSA? Although we do not provide an answer to this question, we now understand that when we suitably restrict the DSA syntax, the derivation procedure indeed is able to generate a minimal automaton in the restricted class, starting from the canonical DFA. This provides new insights about the derivation procedure. Moreover, as we will see, many DSAs discussed in this paper are already strong. We also provide a real-life-inspired example of a strong DSA. So, overall, this section sends the message that there are specifications that can be encoded naturally as strong DSAs, and we have a method to generate minimal strong DSAs. 
+This section is inspired by a question that was left open in~\cite{DBLP:journals/corr/abs-2410-22761}: when does the smallest DSA derived from the canonical DFA correspond to a minimal DSA? Although we do not provide an answer to this question, we now understand that when we suitably restrict the DSA syntax, the derivation procedure indeed is able to generate a minimal automaton in the restricted class, starting from the canonical DFA. This provides new insights about the derivation procedure. Moreover, as we will see, many DSAs discussed in this paper are already strong. We also provide a real-life-inspired example of a strong DSA. So, overall, this section sends the message that there are specifications that can be encoded naturally as strong DSAs, and we have a method to generate minimal strong DSAs. 
 
 \subsection{Syntax of strong DSAs}
 \label{sec:sDSA-syntax}
@@ -575,10 +582,10 @@ This section is inspired by a question that was left open in the earlier version
 We start with a formal description of the syntax of strong DSAs. The examples that follow aim to give an explanation of this definition. In this definition, we say $\alpha'$ is a non-empty prefix of a word $\alpha$ when $\alpha' \neq \epsilon$ and $\alpha' \prfx \alpha$. 
 
 \begin{definition}[sDSA]\label{def:str-suff-reading-aut}
-(Strongly Deterministic Suffix-reading Automata). A DSA $\Aa = (Q, \Sigma, q_{init}, \Delta, F)$ is said to be strongly deterministic if for every state $q \in Q$, for every $\a, \beta \in \out (q)$, and for all non-empty prefixes $\a' \prfx \a$ and all non-empty proper prefixes $\beta' \pprfx \beta$, we have $\a' \not \sfx \beta'$ : no prefix of $\a$ is a factor of $\beta$.
+(Strongly Deterministic Suffix-reading Automata). A DSA $\Aa$ given by $(Q, \Sigma, q_{init}, \Delta, F)$ is said to be strongly deterministic if for every state $q \in Q$, for every $\a, \beta \in \out (q)$, and for all non-empty prefixes $\a' \prfx \a$ and all non-empty proper prefixes $\beta' \pprfx \beta$, we have $\a' \not \sfx \beta'$ : no prefix of $\a$ is a factor of $\beta$.
 \end{definition}
 
-For instance, the DSA in Figure~\ref{fig:if-else} is not an sDSA: at state $s_1$ we have $\out(s_1) = \{ \text{\texttt{if}}, \text{\texttt{endif}}\}$, and the letter \texttt{i} (which is a prefix of \texttt{if}) appears in \texttt{endif} as a suffix  of \texttt{endi}. The DSAs in Figures~\ref{fig:example-aab} and \ref{fig:example-ab-bb} are strong DSAs: it is easy to verify this for $\Aa_2$ and $\Aa_3$; for $\Aa_4$, we provide an explanation. We have $\out(q_0) = \{ab , ba\}$; let $\alpha = ab$ and $\beta= ba$. The non-empty prefixes of $\alpha$ are $a$ and $ab$. The only non-empty proper prefix of $\beta$ is $b$. Notice that neither $a$ nor $ab$ is a suffix of $b$. The same exercise can be repeated with $\alpha = ba$ and $\beta = ab$. We conclude that $\Aa_4$ is an sDSA. Note that any DFA is an sDSA, as the labels of each outgoing transition at a state are distinct letters (and a DFA is a valid DSA). A slightly modified version of the DSA in Figure~\ref{fig:if-else} gives us an example of an sDSA. In Figure~\ref{fig:if-else-no-nest} we have a DSA for out-of-context \texttt{else} statements, where we allow nested \texttt{if}, but a single \texttt{endif} appearing later corresponds to all the open \texttt{if} so far. A context would therefore be the part between the first \texttt{if} and the last \texttt{endif}. If the specification additionally requires to disallow nested \texttt{if}, then it can be modeled by the intersection of the sDSA of Figure~\ref{fig:if-else-no-nest} and another automaton that rejects words with two \texttt{if} with no \texttt{endif} in between.
+For instance, the DSA in Figure~\ref{fig:if-else} is not an sDSA: at state $s_1$ we have the outgoing labels $\out(s_1) =\{ \text{\texttt{if}}, \text{\texttt{endif}}\}$, and the letter \texttt{i} (which is a prefix of \texttt{if}) appears in \texttt{endif} as a suffix  of \texttt{endi}. The DSAs in Figures~\ref{fig:example-aab} and \ref{fig:example-ab-bb} are strong DSAs: it is easy to verify this for $\Aa_2$ and $\Aa_3$; for $\Aa_4$, we provide an explanation. We have $\out(q_0) = \{ab , ba\}$; let $\alpha = ab$ and $\beta= ba$. The non-empty prefixes of $\alpha$ are $a$ and $ab$. The only non-empty proper prefix of $\beta$ is $b$. Notice that neither $a$ nor $ab$ is a suffix of $b$. The same exercise can be repeated with $\alpha = ba$ and $\beta = ab$. We conclude that $\Aa_4$ is an sDSA. Note that any DFA is an sDSA, as the labels of each outgoing transition at a state are distinct letters (and a DFA is a valid DSA). A slightly modified version of the DSA in Figure~\ref{fig:if-else} gives us an example of an sDSA. In Figure~\ref{fig:if-else-no-nest} we have a DSA for out-of-context \texttt{else} statements, where we allow nested \texttt{if}, but a single \texttt{endif} appearing later corresponds to all the open \texttt{if} so far. A context would therefore be the part between the first \texttt{if} and the last \texttt{endif}. If the specification additionally requires to disallow nested \texttt{if}, then it can be modeled by the intersection of the sDSA of Figure~\ref{fig:if-else-no-nest} and another automaton that rejects words with two \texttt{if} with no \texttt{endif} in between.
 
 \begin{figure}[t]
   \centering
@@ -600,7 +607,7 @@ For instance, the DSA in Figure~\ref{fig:if-else} is not an sDSA: at state $s_1$
   \label{fig:if-else-no-nest}
 \end{figure}
 
-We describe another example of a strong DSA, motivated by a real-life situation. It is a simplified specification of an automotive
+\paragraph*{A motivating example.} We describe another example of a strong DSA, motivated by a real-life situation. It is a simplified specification of an automotive
 application: ``when the alarm is off, and the panic switch is pressed
 twice within one clock cycle, go to an error state''. The DFA in
 Figure~\ref{fig:automotive-eg} models this. States $q_0$ and $q_1$
@@ -790,7 +797,7 @@ The set $S'$ is also well-formed since $\Aa$ is well-formed. Suppose it was not.
 
 %marker
 
-This chapter has ventured into the complex and foundational problem of DSA minimization, revealing a landscape that differs significantly from classical automata theory. Our investigation yielded three primary contributions that deepen our understanding of the suffix-reading model.
+\paragraph*{Concluding remarks for Chapter~\ref{sec:minim-some-observ}.} This chapter considered the problem of DSA minimization, revealing a set of properties that differ significantly from classical automata theory. Our investigation yielded three primary contributions that deepen our understanding of the suffix-reading model.
 
 First, we uncovered a fundamental bottleneck in DSA minimization: the discovery that the canonical (Myhill-Nerode) DFA is an insufficient starting point for deriving a minimal DSA. This surprising observation demonstrates that the optimal structure for a suffix-reading model may require finer state distinctions than those preserved by the canonical DFA. Second, we provided a formal explanation for this difficulty by proving that the DSA minimization problem is intrinsically hard: deciding if a language has an equivalent DSA of a given size is NP-complete, a result established via a reduction from the Vertex Cover problem~\cite{DBLP:conf/coco/Karp72}.
 
