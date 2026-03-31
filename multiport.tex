@@ -1,9 +1,9 @@
 \chapter{Multi-port Deterministic Suffix-Reading Automata}
-\label{sec:intro}
+\label{sec:multiport}
 
-The preceding chapters developed the theory of Deterministic Suffix-reading Automata (DSAs) as a powerful tool for the succinct specification of \emph{sequential}, pattern-based systems. However, modern software and hardware systems are rarely monolithic; they are typically composed of multiple interacting components that operate concurrently. This chapter pivots our investigation from the sequential to the concurrent domain, addressing the new set of challenges that arise when specifying the behavior of such systems.
+The preceding chapters developed the theory of Deterministic Suffix-reading Automata as a powerful tool for the succinct specification of \emph{sequential}, pattern-based systems. However, modern software and hardware systems are rarely monolithic; they are typically composed of multiple interacting components that operate concurrently. This chapter pivots our investigation from the sequential to the concurrent domain, addressing the new set of challenges that arise when specifying the behavior of such systems.
 
-A primary obstacle in modeling concurrent systems with sequential automata is the `interleaving explosion'. To capture all possible behaviors, a model must typically account for every possible ordering of asynchronous events from different components. For example, a requirement that a car can only start after receiving signals for the key in ignition ($K$), brake pressed ($B$), and transmission in park ($P$)—in any order—would force a standard DSA to explicitly enumerate all $3! = 6$ permutations of these events on transition labels. As the number of concurrent components grows, this approach becomes combinatorially infeasible and defeats the purpose of DSA as a concise specification~\cite{DBLP:journals/corr/abs-2410-22761}.
+A primary obstacle in modeling concurrent systems with sequential automata is the `interleaving explosion'. To capture all possible behaviors, a model must typically account for every possible ordering of asynchronous events from different components. For example, a requirement that a car can only start after receiving signals for the key in ignition ($K$), brake pressed ($B$), and transmission in park ($P$)—in any order—would force a standard DSA to explicitly enumerate all $3! = 6$ permutations of these events on transition labels. As the number of concurrent components grows, this approach becomes combinatorially infeasible and defeats the purpose of DSA as a concise specification.
 
 
 
@@ -60,7 +60,7 @@ A primary obstacle in modeling concurrent systems with sequential automata is th
 
 
 
-  In Figure~\ref{fig:dsa-examples}(a), the DSA accepts all words that end with $ab$, for instance $bab, bbab, babaab$, etc. The transition $q_0 \xra{ab} q_0$ is fired as soon as a word ending with $ab$ is seen after reaching $q_0$. For instance, on the word $babaab$, the transition is first triggered on the prefix $bab$ since this is the first time $ab$ appears as suffix; once the transition is triggered, the prefix $bab$ has been consumed, and now we are left with $aab$; on reading $aab$ fully, the transition $q_0 \xra{ab} q_0$ is triggered again.  In Figure~\ref{fig:dsa-examples}(b), we can view the state $q_0$ as tracking two suffixes $ba$ and $ab$. When $ba$ is seen before $ab$, the self-loop is triggered; otherwise when $ab$ is seen first, the transition to $q_1$ is taken. For example, on word $bbab$, the automaton starts at $q_0$, and on $bba$ it fires $q_0 \xra{ba} q_0$ (since $ba$ is a suffix of $bba$), then reads $b$ and remains there. %Since $q_0$ is non-accepting, the word is rejected. 
+  Let us quickly recall the basic principles with which we started to define the DSA model, as this will lead us to the new definition in the concurrent setting. In Figure~\ref{fig:dsa-examples}(a), the DSA accepts all words that end with $ab$, for instance $bab, bbab, babaab$, etc. The transition $q_0 \xra{ab} q_0$ is fired as soon as a word ending with $ab$ is seen after reaching $q_0$. For instance, on the word $babaab$, the transition is first triggered on the prefix $bab$ since this is the first time $ab$ appears as suffix; once the transition is triggered, the prefix $bab$ has been consumed, and now we are left with $aab$; on reading $aab$ fully, the transition $q_0 \xra{ab} q_0$ is triggered again.  In Figure~\ref{fig:dsa-examples}(b), we can view the state $q_0$ as tracking two suffixes $ba$ and $ab$. When $ba$ is seen before $ab$, the self-loop is triggered; otherwise when $ab$ is seen first, the transition to $q_1$ is taken. For example, on word $bbab$, the automaton starts at $q_0$, and on $bba$ it fires $q_0 \xra{ba} q_0$ (since $ba$ is a suffix of $bba$), then reads $b$ and remains there. %Since $q_0$ is non-accepting, the word is rejected. 
   However, on $bbaab$, the run loops on $bba$ back to $q_0$, and then reads the next $ab$ to reach $q_1$, and accept. The final example Figure~\ref{fig:dsa-examples}(c) is a \emph{suffix-based specification} of a part of an automotive software: when the alarm is off, and the panic switch is pressed twice within one second, flag an error. Here, we assume there is a symbol \texttt{tick} to denote the elapse of $1$ unit of time. So, on a word \texttt{tick}; \texttt{On}; \texttt{tick}; \texttt{Off}; \texttt{PanicSw}; \texttt{PanicSw}, an error should be flagged (we have added a separator symbol ; just for clarity). This specification is succinctly represented by the DSA in Figure~\ref{fig:dsa-examples}(c).
 
    Since transitions in a DSA wait for specific patterns to appear, DSAs are able to represent suffix-based specifications succinctly. When we consider systems with multiple components (which we call ports), the requirements can talk about different combinations of inputs. Here are two examples. 
@@ -108,7 +108,7 @@ A primary obstacle in modeling concurrent systems with sequential automata is th
    \caption{Concurrent suffix-based specifications as multi-port DSAs}
    \label{fig:mdsa-examples}
    \end{figure}
-   \paragraph*{Car Security System.} For a car to start, you need: key in ignition ($K$), brake pedal pressed ($B$), and transmission in park ($P$). The actions $K$, $P$ and $B$ can occur in any order. A DSA would need to represent this requirement using all $6$ permutations. Instead, we assume an alphabet that is distributed across different \emph{ports} -- ignition, brake pedal, transmission, and denote the concurrent actions as $K \parallel B \parallel P$. Here are some requirements of a car security system. Figure~\ref{fig:mdsa-examples}(a) illustrates the enriched DSA.
+   \paragraph*{Car Security System.} For a car to start, you need: key in ignition ($K$), brake pedal pressed ($B$), and transmission in park ($P$). The actions $K$, $P$ and $B$ can occur in any order. A DSA would need to represent this requirement using all $6$ permutations. Instead, we assume an alphabet that is distributed across different \emph{ports} -- ignition, brake pedal, transmission, and denote the concurrent actions as $K \parallel B \parallel P$. Here are some requirements of a car security system. 
 
    \begin{itemize}
    \item When the brake pedal is pressed ($B$), transmission is in park $(P)$ and key is in ignition ($K$), the car can be started.
@@ -116,6 +116,7 @@ A primary obstacle in modeling concurrent systems with sequential automata is th
    \item When the brake pedal is pressed ($B$), transmission is in park ($P$), and the ignition becomes off ($\mathtt{Off}$), the car is switched off. If ignition is switched off when brake is not pressed or when transmission is in drive/reverse, signal an error.
    \end{itemize}
 
+   Figure~\ref{fig:mdsa-examples}(a) illustrates the enriched DSA capturing these requirements.
   
    \paragraph*{Smartphone Lock Pattern.} 
    Figure~\ref{fig:mdsa-examples}(b) represents the enriched DSA modeling the requirements below for a smartphone lock.
@@ -134,7 +135,7 @@ A primary obstacle in modeling concurrent systems with sequential automata is th
 
 This challenge motivates the extension of our suffix-reading paradigm. The goal is to create a formalism that can directly express the logical intent of concurrent rules, such as `$K \parallel B \parallel P$', thereby abstracting away the details of interleaving. This requires a new model, which we call the `Multi-port Deterministic Suffix-reading Automaton (mDSA)'. The core idea is to partition the alphabet across multiple "ports" and introduce a parallel composition operator, `$\parallel$', into the transition syntax.
 
-However, simply adding a new operator is a trivial syntactic change; the deep technical challenge lies in defining a formal operational semantics that is both theoretically sound and intuitively correct for real-world scenarios. This chapter grapples with a fundamental semantic dilemma: should the history of events be "consumed" after a transition, or should it persist as context? The \emph{Car Security System} example requires persistent context (the brake may need to remain pressed for a future action), while the \emph{Smartphone Lock} example requires detecting a "fresh" button press to avoid infinite loops on old data.
+However, simply adding a new operator is a trivial syntactic change; the technical challenge lies in defining a formal operational semantics that is both theoretically sound and intuitively correct for real-world scenarios. This chapter discusses  a basic semantic dilemma: should the history of events be "consumed" after a transition, or should it persist as context? The \emph{Car Security System} example requires persistent context (the brake may need to remain pressed for a future action), while the \emph{Smartphone Lock} example requires detecting a "fresh" button press to avoid infinite loops on old data.
 
 To resolve this, we will show that a novel, tape-based semantics is required. This work is further motivated by practical needs in Model Based Testing (MBT)~\cite{10.1145/1353673.1353681, 10.1002/stvr.456}. Industrial specification notations like Expressive Decision Tables (EDTs)~\cite{DBLP:conf/date/VenkateshSKA14} are used for test generation~\cite{DBLP:conf/enase/VenkateshSZA15a, DBLP:conf/icst/AgrawalVSZV20} and already employ a form of concurrent, suffix-based logic, but have historically lacked a rigorous formal semantics. A key contribution of this work is to provide such a semantics via the mDSA framework. This chapter will therefore define the mDSA model and its semantics, while subsequent chapters will extend it with outputs to fully capture and analyze notations like EDTs.
 
@@ -157,12 +158,12 @@ To resolve this, we will show that a novel, tape-based semantics is required. Th
 
   
   %\subsubsection*{Contributions.} 
-  The goal of this chapter is to investigate the
-  addition of a parallel operator $\parallel$, into the
-  transition syntax of DSAs. %We call the resulting model as \emph{multi-port DSAs}, where the alphabet is distributed (partitioned) across multiple ports.
-  The challenge lies in describing an operational semantics that matches with
-  our intentions. As our first technical contribution, we provide a formal
-  operational semantics for multi-port DSAs, or mDSAs.
+  % The goal of this chapter is to investigate the
+  % addition of a parallel operator $\parallel$, into the
+  % transition syntax of DSAs. %We call the resulting model as \emph{multi-port DSAs}, where the alphabet is distributed (partitioned) across multiple ports.
+  % The challenge lies in describing an operational semantics that matches with
+  % our intentions. As our first technical contribution, we provide a formal
+  % operational semantics for multi-port DSAs, or mDSAs.
   
   %Next, we include the feature to produce outputs on transitions, giving us mDSA-with-outputs. When the produced outputs also influence suffix-based input conditions, the behaviours become more complex. In fact, we then show that state reachability for mDSA-with-outputs is $\PSPACE$-complete. When there are no outputs, reachability is simply linear in the input size.  
 
@@ -200,39 +201,40 @@ a,nd different transitions may trigger on the same string at a port. For example
 %\paragraph*{Structure of the paper.} %Section~\ref{sec:prelims} briefly recalls the syntax and semantics of Deterministic Suffix-reading Automata (DSA). 
 %In Section~\ref{sec:multiport}, we extend DSA with the parallel operator, and in section~\ref{sec:multiport-outputs}, we add the feature to produce outputs. Finally in Section~\ref{sec:edt}, we describe the EDT notation and the translation from EDT to multi-port DSA with outputs. 
 
+\paragraph*{Structure of this chapter} We start with some preliminary notations. In Section~\ref{sec:challenges}, we describe in more detail the challenges in coming up with a semantics in the presence of the $\parallel$ operators. Section~\ref{sec:mdsa-syntax-semantics} gives the formal syntax and semantics.
 
 
 
-
-\section{Extending DSA to accommodate multiple ports}
-\label{sec:multiport}
+%\section{Extending DSA to accommodate multiple ports}
+%\label{sec:multiport}
+\paragraph*{Notations.}
 
 Consider a special kind of alphabet
 $\Sigma = \langle \Sigma_1, \Sigma_2, \dots, \Sigma_k \rangle$ such
 that $\Sigma_i \cap \Sigma_j = \emptyset$ for all $i, j \in
 \{1, \dots, k\}$. We will call $\Sigma_i$ as the alphabet of \emph{port} $i$,
-and $\Sigma$ as a \emph{multi-port} alphabet. For instance, in the \emph{Car Security System specification} of Section~\ref{sec:intro}, there are three ports: brake, transmission and ignition, with $\Sigma_{\mathsf{brake}} = \{B\}$, $\Sigma_{\mathtt{trm}} = \{ P, D\}$ and $\Sigma_{\mathtt{ig}} = \{ K, \mathtt{Off} \}$ respectively.  
+and $\Sigma$ as a \emph{multi-port} alphabet. For instance, in the \emph{Car Security System specification}, there are three ports: brake, transmission and ignition, with $\Sigma_{\mathsf{brake}} = \{B\}$, $\Sigma_{\mathtt{trm}} = \{ P, D\}$ and $\Sigma_{\mathtt{ig}} = \{ K, \mathtt{Off} \}$ respectively.  
 
-We look at DFAs over such multi-port alphabets. Such DFAs model properties of systems 
-that listen to inputs from different components and perform actions
-based on them. Sometimes the order in which the system receives its
-inputs from different ports is not relevant. For example, at a state
-$s$, if the system receives $a$ from port 1 and $b$ from port 2, in any
-order, then it has to go to state $t$.  A DFA would model this with
-transitions: $s \xra{a} s_a \xra{b} t$ and $s \xra{b} s_b \xra{a}
-t$. A DSA would contain two transitions $s \xra{ab, ba} t$ (and some
-other transitions, if needed, to take care of $aa$, $bb$). To get a
-more succinct notation we will use a $\parallel$ operator. We will
-write $s \xra{a \parallel b} t$ to mean that at state $s$, when
-both $a$ and $b$ are received, the automaton moves to $t$. When there
-are several components, this notation leads to significant
-succinctness, for instance $a_1 \parallel a_2 \cdots \parallel a_n$
-stands for all the $n!$ permutations of $a_1$ to $a_n$. We will also
-allow expressions of the form $a_1 a_2 \parallel b$, which stands for
-the set of words $\{a_1 a_2 b, a_1 b a_2, b a_1 a_2\}$ which shuffles
-$a_1a_2$ and $b$. Section~\ref{sec:intro} illustrates further examples of the use of $\parallel$ operator in Figure~\ref{fig:mdsa-examples}. We will now formalize this idea.  We begin with some notation.%
+% We look at DFAs over such multi-port alphabets. Such DFAs model properties of systems 
+% that listen to inputs from different components and perform actions
+% based on them. Sometimes the order in which the system receives its
+% inputs from different ports is not relevant. For example, at a state
+% $s$, if the system receives $a$ from port 1 and $b$ from port 2, in any
+% order, then it has to go to state $t$.  A DFA would model this with
+% transitions: $s \xra{a} s_a \xra{b} t$ and $s \xra{b} s_b \xra{a}
+% t$. A DSA would contain two transitions $s \xra{ab, ba} t$ (and some
+% other transitions, if needed, to take care of $aa$, $bb$). To get a
+% more succinct notation we will use a $\parallel$ operator. We will
+% write $s \xra{a \parallel b} t$ to mean that at state $s$, when
+% both $a$ and $b$ are received, the automaton moves to $t$. When there
+% are several components, this notation leads to significant
+% succinctness, for instance $a_1 \parallel a_2 \cdots \parallel a_n$
+% stands for all the $n!$ permutations of $a_1$ to $a_n$. We will also
+% allow expressions of the form $a_1 a_2 \parallel b$, which stands for
+% the set of words $\{a_1 a_2 b, a_1 b a_2, b a_1 a_2\}$ which shuffles
+% $a_1a_2$ and $b$. Section~\ref{sec:intro} illustrates further examples of the use of $\parallel$ operator in Figure~\ref{fig:mdsa-examples}. We will now formalize this idea.  We begin with some notation.%
 
-\paragraph*{Notation.} For a word $w \in \Sigma^*$, we write
+For a word $w \in \Sigma^*$, we write
 $\proj{i}(w)$ for the projection of $w$ onto the set $\Sigma_i$. For
 instance, if $\Sigma_1 = \{a_1, a_2\}, \Sigma_2 = \{b_1, b_2\}$ and
 $w = a_1 b_1 a_2 a_1 b_2 b_2$, we have $\proj{1}(w) = a_1 a_2 a_1$ and
@@ -240,7 +242,7 @@ $\proj{2}(w) = b_1 b_2 b_2$.
 Notice that if for two words $w_1, w_2$ suppose $\proj{i}(w_1) = \proj{i}(w_2)$ for all ports $i$, then $w_1$ and $w_2$ have the same order of events within each port, but could have a different ordering between letters from different ports.% 
 
 
-\subsection{Some challenges in extending to multiport}
+\section{Some challenges in extending to multiport}
 \label{sec:challenges}
 
 For a DSA, a configuration was given by $(q, w)$ where $q$ is the current state and $w$ is the word seen after reaching $q$. Moreover, if a transition matches, the DSA moves to a configuration $(q', \epsilon)$ by fully consuming the word seen so far. Now consider the car security system example (Figure~\ref{fig:mdsa-examples} (a)) . On receiving inputs $P;B;K$, the automaton moves to $\mathtt{Started}$ state.
@@ -250,7 +252,11 @@ If the brake remains pressed and the transmission is moved to park, we would lik
   \end{align*} 
  If we had consumed the prefix $P;B;K$ while moving to the $\mathtt{Started}$ state, then the transition $B \parallel D$ would not match anymore, since there is no $B$ after reaching $\mathtt{Started}$. What we really need is that: the last seen input in the brake port is $B$ and the last seen input in the transmission port is $D$. Therefore, one option is to simply not consume any letters and say that a transition $u_1 \parallel u_2 \parallel \cdots \parallel u_k$ matches a word $w$ if $u_i$ is a suffix of projection $\proj{i}(w)$. However, this creates other problems as we will now illustrate. 
  
- Consider the smartphone lock pattern specification (Figure~\ref{fig:mdsa-examples} (b)). On a word $F; T_1; T_2; T_3; \mathtt{Press}$, the phone is unlocked and the automaton goes to the $\mathtt{PhoneOn}$ state. At this state, there is an outgoing transition that listens to $\mathtt{Press}$. If we do not consume the word seen so far, the last seen input in the button port is still $\mathtt{Press}$, and hence the automaton would go back to the $\mathtt{PhoneOn}$ state without seeing additional inputs. In fact, this looping behaviour would continue forever, with no inputs seen. Therefore, for the outgoing transition $\mathtt{Press}$ in the $\mathtt{PhoneOn}$ state, the intention is that we need to receive a fresh signal $\mathtt{Press}$.  
+ Consider the smartphone lock pattern specification (Figure~\ref{fig:mdsa-examples} (b)). On a word:
+ \begin{align*} 
+ F; T_1; T_2; T_3; \mathtt{Press}
+ \end{align*} 
+ the phone is unlocked and the automaton goes to the $\mathtt{PhoneOn}$ state. At this state, there is an outgoing transition that listens to $\mathtt{Press}$. If we do not consume the word seen so far, the last seen input in the button port is still $\mathtt{Press}$, and hence the automaton would go back to the $\mathtt{PhoneOn}$ state without seeing additional inputs. In fact, this looping behaviour would continue forever, with no inputs seen. Therefore, for the outgoing transition $\mathtt{Press}$ in the $\mathtt{PhoneOn}$ state, the intention is that we need to receive a fresh signal $\mathtt{Press}$.  
  
  To summarize: on a transition match, we do not want to consume the word seen so far (car security specification example); but simply not consuming the word leads to problems (smartphone lock pattern example). In the following, we adopt an intermediate approach, where we mark the position $\theta$ in the word where the last transition matched. For a new transition $u_1 \parallel u_2 \parallel \cdots \parallel u_k$ to match, in addition to having each $u_i$ as a suffix of $\proj{i}(w)$, we require at least one $u_i$ to appear entirely after the marked position $\theta$. We include an additional condition that every $u_i$ appears either entirely to the left of $\theta$ or to the right of $\theta$ to account for such examples: 
  \begin{align*}
@@ -262,14 +268,14 @@ If the brake remains pressed and the transmission is moved to park, we would lik
 
 
 
-\subsection{Multi-port DSAs: formal syntax and semantics} 
-
+\section{Multi-port DSAs: formal syntax and semantics} 
+\label{sec:mdsa-syntax-semantics}
 We first describe the formal syntax and then proceed to an operational semantics given by a labeled transition system.
 
 \begin{definition}[Multi-port DSA] Let
   $\Sigma = \langle \Sigma_1, \Sigma_2, \dots, \Sigma_k \rangle$ be a
   multi-port alphabet. A \emph{multi-port (deterministic)
-    suffix-reading automaton} (written mDSA in short) $\Aa$ is a
+    suffix-reading automaton} (written mDSA in short) $\Aa$ is given by a
   tuple $(Q, \Sigma, q_0, \delta, F)$ where $Q$, $q_0$ and
   $F$ are a finite set of states, the initial state and a set of
   accept states, respectively. %$L = \{\lt_1, \lt_2, \dots, \lt_p\}$ denotes a set of tape heads. 
@@ -337,9 +343,9 @@ A DSA is an mDSA with a single port. To resolve non-determinism, DSAs employ the
 
 
 
-This chapter successfully extended the suffix-reading paradigm from the sequential domain, as developed in the first part of this thesis, to the more complex realm of concurrent systems. We began by identifying the "interleaving explosion" as a primary barrier to the succinct modeling of concurrent specifications. In response, we introduced the \textit{Multi-port Suffix-reading Automaton} (mDSA), a model that uses a partitioned alphabet and a parallel composition operator to abstract away from specific event orderings.
+\paragraph*{Concluding remarks for Chapter~\ref{sec:multiport}.} This chapter successfully extended the suffix-reading paradigm from the sequential domain, as developed in the first part of this thesis, to the more complex realm of concurrent systems. We began by identifying the "interleaving explosion" as a primary barrier to the succinct modeling of concurrent specifications. In response, we introduced the \textit{Multi-port Suffix-reading Automaton} (mDSA), a model that uses a partitioned alphabet and a parallel composition operator to abstract away from specific event orderings.
 
-The central contribution of this chapter was the development of a novel and robust operational semantics to handle the complex requirements of concurrent event-based logic. By introducing a tape-based configuration, $(q, w, \theta)$, which maintains the full history of inputs along with a marker for the last transition, we resolved the fundamental dilemma between needing persistent context for some conditions and fresh trigger events for others. We have thus established a formal, well-defined model capable of specifying complex, concurrent, and pattern-based system requirements in a concise and intuitive manner.
+The main contribution of this chapter was the development of a novel and robust operational semantics to handle the complex requirements of concurrent event-based reasoning. By introducing a tape-based configuration, $(q, w, \theta)$, which maintains the full history of inputs along with a marker for the last transition, we resolved the fundamental dilemma between needing persistent context for some conditions and fresh trigger events for others. We have thus established a formal, well-defined model capable of specifying complex, concurrent, and pattern-based system requirements in a concise and intuitive manner.
 
 While the mDSA model presented here can recognize intricate combinations of inputs across multiple ports, many reactive systems must also \emph{produce outputs} or actions in response. In many practical specifications, an output generated by the system can immediately alter the state of the world, thereby influencing the conditions for subsequent transitions. To faithfully model this behavior and to provide a formal semantics for industrial notations like EDTs, our model requires one final extension. The next chapter will introduce this feature, defining the `mDSA-with-outputs' and exploring the computationally significant consequences of adding this feedback mechanism.
 
