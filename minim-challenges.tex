@@ -760,7 +760,7 @@ Consider state $q$ of $\Aa$. Due to the presence of state $(q, \beta)$ in $M_\Aa
 
 We remark that the above proof does not work for general DSAs. Consider the transition $q \xra{\beta \alpha} r$ that was removed, and modified to $q \xra{\beta} p$. There could be another transition $q \xra{\beta \alpha'} r'$ in the DSA --- this violates the strong DSA property since $\beta \alpha$ and $\beta \alpha'$ are outgoing labels, and the prefix $\beta$ of the former appears as a suffix of the latter. On seeing the word $\beta \alpha'$ from $q$, the original DSA moves to $r'$. However, in the new DSA, as soon as $\alpha$ is seen the state changes to $p$. This can modify the language. Such a situation does not happen in an sDSA due to the restriction on the outgoing labels. We now prove the main result of this section.
 
-\begin{theorem}
+\begin{theorem}\label{thm:sdsa-from-min-dfa}
 Every minimal sDSA for a language $L$ can be derived from the canonical DFA for $L$.
 \end{theorem}
 
